@@ -14,7 +14,29 @@ datasource db {
 }
 
 model Tournament {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
+  id             String                @id @default(uuid())
+  name           String
+  createdAt      DateTime              @default(now())
+  participations TournamentParticipant[]
+}
+
+model Participant {
+  id             String                @id @default(uuid())
+  name           String
+  weapon         String
+  xp             Int
+  createdAt      DateTime              @default(now())
+  participations TournamentParticipant[]
+}
+
+// 中間テーブル
+model TournamentParticipant {
+  id            String      @id @default(uuid())
+  tournament    Tournament  @relation(fields: [tournamentId], references: [id])
+  tournamentId  String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  createdAt     DateTime    @default(now()) // 参加日時
+
+  @@unique([tournamentId, participantId]) // 同じ大会に同じ参加者が複数回登録されないようにする
 }
