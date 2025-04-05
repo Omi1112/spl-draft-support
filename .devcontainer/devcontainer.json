@@ -11,7 +11,10 @@
 				"esbenp.prettier-vscode",
 				"ms-azuretools.vscode-docker",
 				"ms-vscode-remote.remote-containers",
-				"cweijan.vscode-postgresql-client2"
+				"cweijan.vscode-postgresql-client2",
+				"donjayamanne.githistory",
+				"eamodio.gitlens",
+				"mhutchie.git-graph"
 			],
 			"settings": {
 				"editor.formatOnSave": true,
