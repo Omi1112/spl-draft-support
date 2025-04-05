@@ -18,6 +18,7 @@ model Tournament {
   name           String
   createdAt      DateTime              @default(now())
   participations TournamentParticipant[]
+  teams          Team[]
 }
 
 model Participant {
@@ -27,6 +28,8 @@ model Participant {
   xp             Int
   createdAt      DateTime              @default(now())
   participations TournamentParticipant[]
+  captainTeams   Team[]                @relation("TeamCaptain")
+  memberTeams    TeamMember[]
 }
 
 // 中間テーブル
@@ -38,6 +41,33 @@ model TournamentParticipant {
   participantId String
   createdAt     DateTime    @default(now()) // 参加日時
   isCaptain     Boolean     @default(false) // 主将フラグ
+  teamId        String?     // どのチームに所属しているか（ドラフト後に設定）
 
   @@unique([tournamentId, participantId]) // 同じ大会に同じ参加者が複数回登録されないようにする
+}
+
+// チームモデル
+model Team {
+  id           String       @id @default(uuid())
+  name         String
+  tournament   Tournament   @relation(fields: [tournamentId], references: [id])
+  tournamentId String
+  captain      Participant  @relation("TeamCaptain", fields: [captainId], references: [id])
+  captainId    String
+  members      TeamMember[]
+  createdAt    DateTime     @default(now())
+
+  @@unique([tournamentId, captainId]) // 同じ大会で同じ人が複数のチームのキャプテンにならないようにする
+}
+
+// チームメンバー中間テーブル
+model TeamMember {
+  id            String      @id @default(uuid())
+  team          Team        @relation(fields: [teamId], references: [id])
+  teamId        String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  createdAt     DateTime    @default(now())
+  
+  @@unique([teamId, participantId]) // 同じチームに同じメンバーが複数回登録されないようにする
 }

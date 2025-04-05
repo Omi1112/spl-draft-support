@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { formatDate } from "../../utils/formatDate";
@@ -12,6 +12,7 @@ interface Tournament {
   createdAt: string;
   participants: Participant[];
   captain?: Participant;
+  teams?: Team[];
 }
 
 // 参加者データの型定義
@@ -22,6 +23,16 @@ interface Participant {
   xp: number;
   createdAt: string;
   isCaptain?: boolean;
+}
+
+// チームデータの型定義
+interface Team {
+  id: string;
+  name: string;
+  captainId: string;
+  captain: Participant;
+  members: Participant[];
+  createdAt: string;
 }
 
 // 参加登録データの型定義
@@ -54,6 +65,24 @@ async function fetchTournament(id: string) {
           weapon
           xp
         }
+        teams {
+          id
+          name
+          captainId
+          captain {
+            id
+            name
+            weapon
+            xp
+          }
+          members {
+            id
+            name
+            weapon
+            xp
+          }
+          createdAt
+        }
       }
     }
   `;
@@ -70,19 +99,19 @@ async function fetchTournament(id: string) {
   });
 
   const result = await response.json();
-  
+
   // エラーチェックを追加
   if (result.errors) {
-    console.error('GraphQL errors:', result.errors);
-    throw new Error(result.errors[0]?.message || 'GraphQL error occurred');
+    console.error("GraphQL errors:", result.errors);
+    throw new Error(result.errors[0]?.message || "GraphQL error occurred");
   }
-  
+
   // データの存在を確認
   if (!result.data || !result.data.tournament) {
-    console.error('Unexpected response structure:', result);
-    throw new Error('大会データが見つかりませんでした');
+    console.error("Unexpected response structure:", result);
+    throw new Error("大会データが見つかりませんでした");
   }
-  
+
   return result.data.tournament;
 }
 
@@ -148,15 +177,15 @@ async function setCaptain(tournamentId: string, participantId: string) {
       variables: {
         input: {
           tournamentId,
-          participantId
-        }
+          participantId,
+        },
       },
     }),
   });
 
   const result = await response.json();
   if (result.errors) {
-    throw new Error(result.errors[0].message || 'GraphQL error occurred');
+    throw new Error(result.errors[0].message || "GraphQL error occurred");
   }
   return result.data.setCaptain;
 }
@@ -192,15 +221,15 @@ export default function TournamentDetails() {
         const data = await fetchTournament(id);
         if (data) {
           // キャプテン情報をもとに参加者データに isCaptain フラグを追加
-          const captainIds = data.captains.map(captain => captain.id);
-          const participantsWithCaptainFlag = data.participants.map(p => ({
+          const captainIds = data.captains.map((captain) => captain.id);
+          const participantsWithCaptainFlag = data.participants.map((p) => ({
             ...p,
-            isCaptain: captainIds.includes(p.id)
+            isCaptain: captainIds.includes(p.id),
           }));
 
           setTournament({
             ...data,
-            participants: participantsWithCaptainFlag
+            participants: participantsWithCaptainFlag,
           });
         } else {
           setError("大会が見つかりませんでした。");
@@ -266,28 +295,32 @@ export default function TournamentDetails() {
 
   const handleCaptainToggle = async (participantId: string) => {
     if (!tournament) return;
-    
+
     try {
       await setCaptain(tournament.id, participantId);
-      
+
       // 更新されたデータを取得
       const updatedTournament = await fetchTournament(tournament.id);
-      
+
       // キャプテン情報をもとに参加者データに isCaptain フラグを追加
       if (updatedTournament) {
-        const captainIds = updatedTournament.captains.map(captain => captain.id);
-        const participantsWithCaptainFlag = updatedTournament.participants.map(p => ({
-          ...p,
-          isCaptain: captainIds.includes(p.id)
-        }));
+        const captainIds = updatedTournament.captains.map(
+          (captain) => captain.id
+        );
+        const participantsWithCaptainFlag = updatedTournament.participants.map(
+          (p) => ({
+            ...p,
+            isCaptain: captainIds.includes(p.id),
+          })
+        );
 
         setTournament({
           ...updatedTournament,
-          participants: participantsWithCaptainFlag
+          participants: participantsWithCaptainFlag,
         });
       }
     } catch (err) {
-      console.error('主将設定エラー:', err);
+      console.error("主将設定エラー:", err);
       // エラー処理
     }
   };
@@ -359,6 +392,83 @@ export default function TournamentDetails() {
         </p>
       </div>
 
+      {/* チーム一覧セクション */}
+      <div className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+          チーム一覧
+        </h2>
+
+        {!tournament.teams || tournament.teams.length === 0 ? (
+          <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-md text-center">
+            <p className="text-gray-600 dark:text-gray-400">
+              チームはまだ作成されていません
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              キャプテンページからドラフトを開始してチームを作成できます
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {tournament.teams.map((team) => (
+              <div
+                key={team.id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-5"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-medium">{team.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      作成日: {formatDate(team.createdAt)}
+                    </p>
+                  </div>
+                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-md">
+                    {team.members.length}人
+                  </span>
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      主将:
+                    </span>
+                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      {team.captain.name}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    メンバー:
+                  </h4>
+                  <div className="space-y-2">
+                    {team.members.map((member) => (
+                      <div
+                        key={member.id}
+                        className="flex justify-between items-center px-3 py-2 bg-gray-50 dark:bg-gray-800/50 rounded"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{member.name}</span>
+                          {team.captainId === member.id && (
+                            <span className="text-xs px-1 py-0.5 bg-red-500 text-white rounded">
+                              主将
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="mr-2">{member.weapon}</span>
+                          <span>{member.xp.toLocaleString()} XP</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* 参加者一覧セクション */}
       <div className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6 mb-8">
         <div className="flex justify-between items-center mb-6">
@@ -400,13 +510,12 @@ export default function TournamentDetails() {
                 <tbody>
                   {tournament.participants.map((participant) => {
                     const isCaptain = participant.isCaptain || false;
-                    
+
                     return (
-                      <>
+                      <React.Fragment key={participant.id}>
                         <tr
-                          key={participant.id}
                           className={`border-t border-gray-200 dark:border-gray-700 ${
-                            isCaptain ? 'bg-red-50 dark:bg-red-900/10' : ''
+                            isCaptain ? "bg-red-50 dark:bg-red-900/10" : ""
                           }`}
                         >
                           <td className="px-4 py-3">{participant.name}</td>
@@ -416,14 +525,16 @@ export default function TournamentDetails() {
                           </td>
                           <td className="px-4 py-3 text-center">
                             <button
-                              onClick={() => handleCaptainToggle(participant.id)}
+                              onClick={() =>
+                                handleCaptainToggle(participant.id)
+                              }
                               className={`px-2 py-1 text-xs font-medium rounded ${
                                 isCaptain
-                                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                  ? "bg-red-500 hover:bg-red-600 text-white"
+                                  : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
                               }`}
                             >
-                              {isCaptain ? '主将' : '主'}
+                              {isCaptain ? "主将" : "主"}
                             </button>
                           </td>
                         </tr>
@@ -435,15 +546,26 @@ export default function TournamentDetails() {
                                 href={`/tournaments/${tournament.id}/captain/${participant.id}`}
                                 className="text-sm inline-flex items-center text-red-600 hover:text-red-700 gap-1"
                               >
-                                <span>{participant.name}のキャプテンページを表示</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                <span>
+                                  {participant.name}のキャプテンページを表示
+                                </span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                                    clipRule="evenodd"
+                                  />
                                 </svg>
                               </Link>
                             </td>
                           </tr>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </tbody>

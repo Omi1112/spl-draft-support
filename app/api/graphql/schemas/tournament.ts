@@ -8,6 +8,7 @@ export const typeDefs = /* GraphQL */ `
     participants: [Participant!]!
     captains: [Participant!]!
     captain: Participant
+    teams: [Team!]
   }
 
   type Participant {
@@ -18,6 +19,19 @@ export const typeDefs = /* GraphQL */ `
     createdAt: String!
     tournaments: [Tournament!]!
     isCaptainOf: [Tournament!]!
+    team: Team
+    isCaptain: Boolean
+  }
+
+  type Team {
+    id: ID!
+    name: String!
+    captainId: String!
+    captain: Participant!
+    members: [Participant!]!
+    tournamentId: String!
+    tournament: Tournament!
+    createdAt: String!
   }
 
   type TournamentParticipant {
@@ -26,6 +40,7 @@ export const typeDefs = /* GraphQL */ `
     participantId: String!
     createdAt: String!
     isCaptain: Boolean!
+    teamId: String
   }
 
   type Query {
@@ -35,6 +50,7 @@ export const typeDefs = /* GraphQL */ `
     allParticipants: [Participant!]!
     tournamentCaptains(tournamentId: ID!): [Participant!]!
     tournamentCaptain(tournamentId: ID!): Participant
+    teams(tournamentId: ID!): [Team!]!
   }
 
   input CreateTournamentInput {
@@ -58,10 +74,22 @@ export const typeDefs = /* GraphQL */ `
     participantId: ID!
   }
 
+  input StartDraftInput {
+    tournamentId: ID!
+  }
+
+  input ResetDraftInput {
+    tournamentId: ID!
+  }
+
   type Mutation {
     createTournament(input: CreateTournamentInput!): Tournament!
     createParticipant(input: CreateParticipantInput!): Participant!
-    addParticipantToTournament(input: AddParticipantToTournamentInput!): TournamentParticipant!
+    addParticipantToTournament(
+      input: AddParticipantToTournamentInput!
+    ): TournamentParticipant!
     setCaptain(input: SetCaptainInput!): TournamentParticipant!
+    startDraft(input: StartDraftInput!): [Team!]!
+    resetDraft(input: ResetDraftInput!): Boolean!
   }
 `;
