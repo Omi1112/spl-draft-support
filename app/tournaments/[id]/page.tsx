@@ -11,6 +11,7 @@ interface Tournament {
   name: string;
   createdAt: string;
   participants: Participant[];
+  captain?: Participant;
 }
 
 // 参加者データの型定義
@@ -20,6 +21,7 @@ interface Participant {
   weapon: string;
   xp: number;
   createdAt: string;
+  isCaptain?: boolean;
 }
 
 // 参加登録データの型定義
@@ -28,6 +30,7 @@ interface TournamentParticipant {
   tournamentId: string;
   participantId: string;
   createdAt: string;
+  isCaptain: boolean;
 }
 
 // GraphQLクエリを実行する関数
@@ -45,6 +48,12 @@ async function fetchTournament(id: string) {
           xp
           createdAt
         }
+        captains {
+          id
+          name
+          weapon
+          xp
+        }
       }
     }
   `;
@@ -61,6 +70,19 @@ async function fetchTournament(id: string) {
   });
 
   const result = await response.json();
+  
+  // エラーチェックを追加
+  if (result.errors) {
+    console.error('GraphQL errors:', result.errors);
+    throw new Error(result.errors[0]?.message || 'GraphQL error occurred');
+  }
+  
+  // データの存在を確認
+  if (!result.data || !result.data.tournament) {
+    console.error('Unexpected response structure:', result);
+    throw new Error('大会データが見つかりませんでした');
+  }
+  
   return result.data.tournament;
 }
 
@@ -103,6 +125,42 @@ async function addParticipantToTournament(
   return result.data.addParticipantToTournament;
 }
 
+// 主将を設定するGraphQLミューテーション
+async function setCaptain(tournamentId: string, participantId: string) {
+  const mutation = `
+    mutation SetCaptain($input: SetCaptainInput!) {
+      setCaptain(input: $input) {
+        id
+        tournamentId
+        participantId
+        isCaptain
+      }
+    }
+  `;
+
+  const response = await fetch("/api/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: mutation,
+      variables: {
+        input: {
+          tournamentId,
+          participantId
+        }
+      },
+    }),
+  });
+
+  const result = await response.json();
+  if (result.errors) {
+    throw new Error(result.errors[0].message || 'GraphQL error occurred');
+  }
+  return result.data.setCaptain;
+}
+
 export default function TournamentDetails() {
   const params = useParams();
   const router = useRouter();
@@ -133,7 +191,17 @@ export default function TournamentDetails() {
         setLoading(true);
         const data = await fetchTournament(id);
         if (data) {
-          setTournament(data);
+          // キャプテン情報をもとに参加者データに isCaptain フラグを追加
+          const captainIds = data.captains.map(captain => captain.id);
+          const participantsWithCaptainFlag = data.participants.map(p => ({
+            ...p,
+            isCaptain: captainIds.includes(p.id)
+          }));
+
+          setTournament({
+            ...data,
+            participants: participantsWithCaptainFlag
+          });
         } else {
           setError("大会が見つかりませんでした。");
           setTimeout(() => {
@@ -193,6 +261,34 @@ export default function TournamentDetails() {
       setSubmitError("参加者の追加に失敗しました。");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCaptainToggle = async (participantId: string) => {
+    if (!tournament) return;
+    
+    try {
+      await setCaptain(tournament.id, participantId);
+      
+      // 更新されたデータを取得
+      const updatedTournament = await fetchTournament(tournament.id);
+      
+      // キャプテン情報をもとに参加者データに isCaptain フラグを追加
+      if (updatedTournament) {
+        const captainIds = updatedTournament.captains.map(captain => captain.id);
+        const participantsWithCaptainFlag = updatedTournament.participants.map(p => ({
+          ...p,
+          isCaptain: captainIds.includes(p.id)
+        }));
+
+        setTournament({
+          ...updatedTournament,
+          participants: participantsWithCaptainFlag
+        });
+      }
+    } catch (err) {
+      console.error('主将設定エラー:', err);
+      // エラー処理
     }
   };
 
@@ -282,37 +378,78 @@ export default function TournamentDetails() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/50">
-                  <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">
-                    名前
-                  </th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">
-                    使用武器
-                  </th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">
-                    XP
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {tournament.participants.map((participant) => (
-                  <tr
-                    key={participant.id}
-                    className="border-t border-gray-200 dark:border-gray-700"
-                  >
-                    <td className="px-4 py-3">{participant.name}</td>
-                    <td className="px-4 py-3">{participant.weapon}</td>
-                    <td className="px-4 py-3">
-                      {participant.xp.toLocaleString()}
-                    </td>
+          <>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-800/50">
+                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">
+                      名前
+                    </th>
+                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">
+                      使用武器
+                    </th>
+                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">
+                      XP
+                    </th>
+                    <th className="px-4 py-2 text-center font-medium text-gray-600 dark:text-gray-300">
+                      主将
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {tournament.participants.map((participant) => {
+                    const isCaptain = participant.isCaptain || false;
+                    
+                    return (
+                      <>
+                        <tr
+                          key={participant.id}
+                          className={`border-t border-gray-200 dark:border-gray-700 ${
+                            isCaptain ? 'bg-red-50 dark:bg-red-900/10' : ''
+                          }`}
+                        >
+                          <td className="px-4 py-3">{participant.name}</td>
+                          <td className="px-4 py-3">{participant.weapon}</td>
+                          <td className="px-4 py-3">
+                            {participant.xp.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              onClick={() => handleCaptainToggle(participant.id)}
+                              className={`px-2 py-1 text-xs font-medium rounded ${
+                                isCaptain
+                                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                              }`}
+                            >
+                              {isCaptain ? '主将' : '主'}
+                            </button>
+                          </td>
+                        </tr>
+                        {/* キャプテンの場合、そのレコードの直下にキャプテンページへのリンクを表示 */}
+                        {isCaptain && (
+                          <tr className="bg-red-50/50 dark:bg-red-900/5">
+                            <td colSpan={4} className="px-4 py-2">
+                              <Link
+                                href={`/tournaments/${tournament.id}/captain/${participant.id}`}
+                                className="text-sm inline-flex items-center text-red-600 hover:text-red-700 gap-1"
+                              >
+                                <span>{participant.name}のキャプテンページを表示</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </Link>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

@@ -28,11 +28,27 @@ export const resolvers = {
         },
       });
 
-      return participations.map((p) => p.participant);
+      return participations.map((p) => ({
+        ...p.participant,
+        isCaptain: p.isCaptain,
+      }));
     },
     allParticipants: async () => {
       return await prisma.participant.findMany();
     },
+    tournamentCaptain: async (_: any, { tournamentId }: { tournamentId: string }) => {
+      const captainParticipation = await prisma.tournamentParticipant.findFirst({
+        where: { 
+          tournamentId,
+          isCaptain: true
+        },
+        include: {
+          participant: true
+        }
+      });
+      
+      return captainParticipation ? captainParticipation.participant : null;
+    }
   },
   Mutation: {
     createTournament: async (_: any, { input }: { input: any }) => {
@@ -102,6 +118,62 @@ export const resolvers = {
         createdAt: tournamentParticipant.createdAt.toISOString(),
       };
     },
+    setCaptain: async (_: any, { input }: { input: any }) => {
+      const { tournamentId, participantId } = input;
+      
+      // 現在のキャプテン状態を確認
+      const currentParticipation = await prisma.tournamentParticipant.findUnique({
+        where: {
+          tournamentId_participantId: {
+            tournamentId,
+            participantId
+          }
+        }
+      });
+      
+      // 同じ参加者が既にキャプテンの場合は、キャプテンを解除する
+      if (currentParticipation && currentParticipation.isCaptain) {
+        const updatedParticipation = await prisma.tournamentParticipant.update({
+          where: {
+            id: currentParticipation.id
+          },
+          data: {
+            isCaptain: false
+          },
+          include: {
+            participant: true,
+            tournament: true
+          }
+        });
+        
+        return {
+          ...updatedParticipation,
+          createdAt: updatedParticipation.createdAt.toISOString()
+        };
+      }
+      
+      // キャプテンを追加
+      const updatedParticipation = await prisma.tournamentParticipant.update({
+        where: {
+          tournamentId_participantId: {
+            tournamentId,
+            participantId,
+          }
+        },
+        data: {
+          isCaptain: true,
+        },
+        include: {
+          participant: true,
+          tournament: true
+        }
+      });
+      
+      return {
+        ...updatedParticipation,
+        createdAt: updatedParticipation.createdAt.toISOString()
+      };
+    }
   },
   // Tournamentタイプのリゾルバーを追加して日付のフォーマットを保証
   Tournament: {
@@ -126,8 +198,45 @@ export const resolvers = {
           p.participant.createdAt instanceof Date
             ? p.participant.createdAt.toISOString()
             : p.participant.createdAt,
+        isCaptain: p.isCaptain,
       }));
     },
+    captain: async (parent: any) => {
+      const captainParticipation = await prisma.tournamentParticipant.findFirst({
+        where: { 
+          tournamentId: parent.id,
+          isCaptain: true
+        },
+        include: {
+          participant: true
+        }
+      });
+      
+      return captainParticipation ? {
+        ...captainParticipation.participant,
+        createdAt: captainParticipation.participant.createdAt instanceof Date 
+          ? captainParticipation.participant.createdAt.toISOString() 
+          : captainParticipation.participant.createdAt
+      } : null;
+    },
+    captains: async (parent: any) => {
+      const captainParticipations = await prisma.tournamentParticipant.findMany({
+        where: { 
+          tournamentId: parent.id,
+          isCaptain: true
+        },
+        include: {
+          participant: true
+        }
+      });
+      
+      return captainParticipations.map(p => ({
+        ...p.participant,
+        createdAt: p.participant.createdAt instanceof Date 
+          ? p.participant.createdAt.toISOString() 
+          : p.participant.createdAt
+      }));
+    }
   },
   Participant: {
     createdAt: (parent: any) => {
@@ -152,5 +261,23 @@ export const resolvers = {
             : p.tournament.createdAt,
       }));
     },
+    isCaptainOf: async (parent: any) => {
+      const captainParticipations = await prisma.tournamentParticipant.findMany({
+        where: { 
+          participantId: parent.id,
+          isCaptain: true
+        },
+        include: {
+          tournament: true
+        }
+      });
+      
+      return captainParticipations.map(p => ({
+        ...p.tournament,
+        createdAt: p.tournament.createdAt instanceof Date 
+          ? p.tournament.createdAt.toISOString() 
+          : p.tournament.createdAt
+      }));
+    }
   },
 };

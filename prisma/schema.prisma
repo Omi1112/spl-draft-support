@@ -37,6 +37,7 @@ model TournamentParticipant {
   participant   Participant @relation(fields: [participantId], references: [id])
   participantId String
   createdAt     DateTime    @default(now()) // 参加日時
+  isCaptain     Boolean     @default(false) // 主将フラグ
 
   @@unique([tournamentId, participantId]) // 同じ大会に同じ参加者が複数回登録されないようにする
 }
