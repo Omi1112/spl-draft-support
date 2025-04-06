@@ -457,13 +457,24 @@ export const resolvers = {
         throw new Error("既にこの参加者を指名しています");
       }
 
-      // 指名を作成
+      // 現在のDraftStatusを取得して、ラウンドとターンの情報を取得
+      const draftStatus = await prisma.draftStatus.findUnique({
+        where: { tournamentId },
+      });
+
+      if (!draftStatus) {
+        throw new Error("ドラフト状態が見つかりません");
+      }
+
+      // 指名を作成（現在のラウンドとターンの情報も含める）
       const draft = await prisma.draft.create({
         data: {
           tournamentId,
           captainId,
           participantId,
           status: "pending",
+          round: draftStatus.round,
+          turn: draftStatus.turn,
           createdAt: new Date(),
         },
         include: {
@@ -485,16 +496,6 @@ export const resolvers = {
       });
 
       const captainIds = allCaptains.map((c) => c.participantId);
-
-      // 現在のラウンドのドラフト状態を取得
-      const draftStatus = await prisma.draftStatus.findUnique({
-        where: { tournamentId },
-      });
-
-      if (!draftStatus) {
-        // ドラフト状態がない場合はエラー
-        throw new Error("ドラフト状態が見つかりません");
-      }
 
       // 現在のラウンドの指名状況を確認
       const currentRoundDrafts = await prisma.draft.findMany({

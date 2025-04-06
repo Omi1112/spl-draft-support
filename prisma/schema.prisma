@@ -87,6 +87,8 @@ model Draft {
   participantId  String
   createdAt      DateTime    @default(now())
   status         String      @default("pending") // pending, confirmed, cancelled
+  round          Int         @default(1) // ドラフトラウンド
+  turn           Int         @default(1) // ドラフトターン
   
   @@unique([tournamentId, captainId, participantId]) // 同じ大会で同じキャプテンが同じ参加者を重複指名できないようにする
 }

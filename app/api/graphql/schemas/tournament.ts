@@ -53,6 +53,8 @@ export const typeDefs = /* GraphQL */ `
     participantId: String!
     createdAt: String!
     status: String!
+    round: Int!
+    turn: Int!
     captain: Participant!
     participant: Participant!
     tournament: Tournament!
