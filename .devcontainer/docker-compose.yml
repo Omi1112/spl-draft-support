@@ -12,7 +12,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - POSTGRES_PRISMA_URL=postgresql://postgres:postgres@db:5432/postgres&connection_limit=1
+      - POSTGRES_PRISMA_URL=postgresql://postgres:postgres@db:5432/postgres
       - POSTGRES_URL_NON_POOLING=postgresql://postgres:postgres@db:5432/postgres
     depends_on:
       - db
