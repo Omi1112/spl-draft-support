@@ -20,6 +20,7 @@ model Tournament {
   participations TournamentParticipant[]
   teams          Team[]
   drafts         Draft[]               // 指名関連を追加
+  draftStatus    DraftStatus?          // ドラフトステータスとのリレーション
 }
 
 model Participant {
@@ -88,4 +89,16 @@ model Draft {
   status         String      @default("pending") // pending, confirmed, cancelled
   
   @@unique([tournamentId, captainId, participantId]) // 同じ大会で同じキャプテンが同じ参加者を重複指名できないようにする
+}
+
+// ドラフトステータス管理テーブル - ドラフト進行状況を管理する
+model DraftStatus {
+  id           String      @id @default(uuid())
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id])
+  tournamentId String      @unique // 1つの大会に1つのステータス
+  round        Int         @default(1) // ドラフトのラウンド (1回目、2回目...)
+  turn         Int         @default(1) // 順番 (1人目、2人目...)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }

@@ -156,6 +156,21 @@ export const resolvers = {
         },
       }));
     },
+    // ドラフトステータスを取得するクエリを追加
+    draftStatus: async (_: any, { tournamentId }: { tournamentId: string }) => {
+      const status = await prisma.draftStatus.findUnique({
+        where: { tournamentId },
+        include: { tournament: true }
+      });
+
+      if (!status) return null;
+
+      return {
+        ...status,
+        createdAt: status.createdAt instanceof Date ? status.createdAt.toISOString() : status.createdAt,
+        updatedAt: status.updatedAt instanceof Date ? status.updatedAt.toISOString() : status.updatedAt,
+      };
+    }
   },
   Mutation: {
     createTournament: async (_: any, { input }: { input: any }) => {
@@ -316,6 +331,16 @@ export const resolvers = {
         );
       }
 
+      // ドラフトステータスを作成（一人目一回目の設定）
+      await prisma.draftStatus.create({
+        data: {
+          tournamentId,
+          round: 1, // 1回目
+          turn: 1,  // 1人目
+          isActive: true,
+        },
+      });
+
       // 各キャプテンにチームを作成（キャプテンだけをメンバーとして追加）
       const createdTeams = [];
 
@@ -358,6 +383,7 @@ export const resolvers = {
       // 残りのメンバーはチームに割り振らずに終了
       return createdTeams;
     },
+    
     resetDraft: async (
       _: any,
       { input }: { input: { tournamentId: string } }
@@ -390,7 +416,12 @@ export const resolvers = {
             where: { tournamentId },
           });
 
-          // 5. 参加者のチーム関連付けをリセット
+          // 5. ドラフトステータスを削除
+          await tx.draftStatus.deleteMany({
+            where: { tournamentId },
+          });
+
+          // 6. 参加者のチーム関連付けをリセット
           await tx.tournamentParticipant.updateMany({
             where: { tournamentId },
             data: { teamId: null },
@@ -548,6 +579,44 @@ export const resolvers = {
         },
       };
     },
+
+    // ドラフトラウンド更新ミューテーション
+    updateDraftRound: async (_: any, { input }: { input: any }) => {
+      const { tournamentId, round, turn } = input;
+
+      // 既存のドラフトステータスを確認
+      const existingStatus = await prisma.draftStatus.findUnique({
+        where: { tournamentId }
+      });
+
+      let draftStatus;
+      
+      if (existingStatus) {
+        // 既存のステータスを更新
+        draftStatus = await prisma.draftStatus.update({
+          where: { tournamentId },
+          data: { round, turn },
+          include: { tournament: true }
+        });
+      } else {
+        // 新しいステータスを作成
+        draftStatus = await prisma.draftStatus.create({
+          data: {
+            tournamentId,
+            round,
+            turn,
+            isActive: true
+          },
+          include: { tournament: true }
+        });
+      }
+
+      return {
+        ...draftStatus,
+        createdAt: draftStatus.createdAt instanceof Date ? draftStatus.createdAt.toISOString() : draftStatus.createdAt,
+        updatedAt: draftStatus.updatedAt instanceof Date ? draftStatus.updatedAt.toISOString() : draftStatus.updatedAt,
+      };
+    },
   },
   // Tournamentタイプのリゾルバーを追加して日付のフォーマットを保証
   Tournament: {
@@ -677,6 +746,20 @@ export const resolvers = {
               : draft.participant.createdAt,
         },
       }));
+    },
+    // トーナメントとドラフトステータスのリレーションを解決
+    draftStatus: async (parent: any) => {
+      const status = await prisma.draftStatus.findUnique({
+        where: { tournamentId: parent.id },
+      });
+
+      if (!status) return null;
+
+      return {
+        ...status,
+        createdAt: status.createdAt instanceof Date ? status.createdAt.toISOString() : status.createdAt,
+        updatedAt: status.updatedAt instanceof Date ? status.updatedAt.toISOString() : status.updatedAt,
+      };
     },
   },
   Participant: {
