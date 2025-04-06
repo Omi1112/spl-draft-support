@@ -160,17 +160,23 @@ export const resolvers = {
     draftStatus: async (_: any, { tournamentId }: { tournamentId: string }) => {
       const status = await prisma.draftStatus.findUnique({
         where: { tournamentId },
-        include: { tournament: true }
+        include: { tournament: true },
       });
 
       if (!status) return null;
 
       return {
         ...status,
-        createdAt: status.createdAt instanceof Date ? status.createdAt.toISOString() : status.createdAt,
-        updatedAt: status.updatedAt instanceof Date ? status.updatedAt.toISOString() : status.updatedAt,
+        createdAt:
+          status.createdAt instanceof Date
+            ? status.createdAt.toISOString()
+            : status.createdAt,
+        updatedAt:
+          status.updatedAt instanceof Date
+            ? status.updatedAt.toISOString()
+            : status.updatedAt,
       };
-    }
+    },
   },
   Mutation: {
     createTournament: async (_: any, { input }: { input: any }) => {
@@ -336,7 +342,7 @@ export const resolvers = {
         data: {
           tournamentId,
           round: 1, // 1回目
-          turn: 1,  // 1人目
+          turn: 1, // 1人目
           isActive: true,
         },
       });
@@ -383,7 +389,7 @@ export const resolvers = {
       // 残りのメンバーはチームに割り振らずに終了
       return createdTeams;
     },
-    
+
     resetDraft: async (
       _: any,
       { input }: { input: { tournamentId: string } }
@@ -466,6 +472,201 @@ export const resolvers = {
           tournament: true,
         },
       });
+
+      // すべてのキャプテンが指名完了しているか確認
+      const allCaptains = await prisma.tournamentParticipant.findMany({
+        where: {
+          tournamentId,
+          isCaptain: true,
+        },
+        select: {
+          participantId: true,
+        },
+      });
+
+      const captainIds = allCaptains.map((c) => c.participantId);
+
+      // 現在のラウンドのドラフト状態を取得
+      const draftStatus = await prisma.draftStatus.findUnique({
+        where: { tournamentId },
+      });
+
+      if (!draftStatus) {
+        // ドラフト状態がない場合はエラー
+        throw new Error("ドラフト状態が見つかりません");
+      }
+
+      // 現在のラウンドの指名状況を確認
+      const currentRoundDrafts = await prisma.draft.findMany({
+        where: {
+          tournamentId,
+          status: "pending",
+        },
+      });
+
+      // キャプテンごとの指名データをグループ化
+      const captainDrafts = new Map();
+      currentRoundDrafts.forEach((draft) => {
+        if (!captainDrafts.has(draft.captainId)) {
+          captainDrafts.set(draft.captainId, []);
+        }
+        captainDrafts.get(draft.captainId).push(draft);
+      });
+
+      // すべてのキャプテンが指名を完了しているか確認
+      const allCaptainsNominated = captainIds.every(
+        (id) => captainDrafts.has(id) && captainDrafts.get(id).length > 0
+      );
+
+      // すべてのキャプテンが指名完了した場合の処理
+      if (allCaptainsNominated) {
+        console.log("全キャプテン指名完了: ドラフト処理を実行します");
+
+        // 参加者ごとの指名状況を集計
+        const participantNominations = new Map();
+        currentRoundDrafts.forEach((draft) => {
+          if (!participantNominations.has(draft.participantId)) {
+            participantNominations.set(draft.participantId, []);
+          }
+          participantNominations.get(draft.participantId).push(draft);
+        });
+
+        // 各参加者について、指名の競合を解決
+        for (const [
+          participantId,
+          drafts,
+        ] of participantNominations.entries()) {
+          if (drafts.length === 1) {
+            // 指名が競合していない場合、その選手をチームに確定
+            const selectedDraft = drafts[0];
+
+            // チームを取得
+            const team = await prisma.team.findFirst({
+              where: {
+                tournamentId,
+                captainId: selectedDraft.captainId,
+              },
+            });
+
+            if (team) {
+              // チームメンバーとして追加
+              await prisma.teamMember.create({
+                data: {
+                  teamId: team.id,
+                  participantId: selectedDraft.participantId,
+                },
+              });
+
+              // 参加者のtournamentParticipantレコードを更新してチームを関連付け
+              await prisma.tournamentParticipant.updateMany({
+                where: {
+                  tournamentId,
+                  participantId: selectedDraft.participantId,
+                },
+                data: {
+                  teamId: team.id,
+                },
+              });
+
+              // ドラフト状態を確定に更新
+              await prisma.draft.update({
+                where: { id: selectedDraft.id },
+                data: { status: "confirmed" },
+              });
+
+              console.log(
+                `参加者 ${selectedDraft.participantId} をチーム ${team.id} に確定しました`
+              );
+            }
+          } else {
+            // 指名が競合している場合、ランダムに選出
+            const randomIndex = Math.floor(Math.random() * drafts.length);
+            const selectedDraft = drafts[randomIndex];
+
+            // 選ばれたキャプテンのチームを取得
+            const team = await prisma.team.findFirst({
+              where: {
+                tournamentId,
+                captainId: selectedDraft.captainId,
+              },
+            });
+
+            if (team) {
+              // チームメンバーとして追加
+              await prisma.teamMember.create({
+                data: {
+                  teamId: team.id,
+                  participantId: selectedDraft.participantId,
+                },
+              });
+
+              // 参加者のtournamentParticipantレコードを更新してチームを関連付け
+              await prisma.tournamentParticipant.updateMany({
+                where: {
+                  tournamentId,
+                  participantId: selectedDraft.participantId,
+                },
+                data: {
+                  teamId: team.id,
+                },
+              });
+
+              // 選ばれたドラフトを確定に更新
+              await prisma.draft.update({
+                where: { id: selectedDraft.id },
+                data: { status: "confirmed" },
+              });
+
+              // 他の競合ドラフトをキャンセルに更新
+              for (const otherDraft of drafts) {
+                if (otherDraft.id !== selectedDraft.id) {
+                  await prisma.draft.update({
+                    where: { id: otherDraft.id },
+                    data: { status: "cancelled" },
+                  });
+                }
+              }
+
+              console.log(
+                `競合: 参加者 ${selectedDraft.participantId} をチーム ${team.id} に確定しました（ランダム選択）`
+              );
+            }
+          }
+        }
+
+        // すべての処理が終わったら、ドラフトステータスを更新
+        const totalCaptains = captainIds.length;
+
+        // 競合があったかどうかを確認
+        const hadConflicts = Array.from(participantNominations.values()).some(
+          (drafts) => drafts.length > 1
+        );
+
+        if (hadConflicts) {
+          // 競合があった場合、ラウンドを進める
+          await prisma.draftStatus.update({
+            where: { tournamentId },
+            data: { round: draftStatus.round + 1 },
+          });
+          console.log(
+            `競合があったためラウンドを更新: ${draftStatus.round + 1}回目`
+          );
+        } else {
+          // 競合がなかった場合、次の順番に進める
+          const nextTurn = (draftStatus.turn % totalCaptains) + 1;
+          const nextRound =
+            nextTurn === 1 ? draftStatus.round + 1 : draftStatus.round;
+
+          await prisma.draftStatus.update({
+            where: { tournamentId },
+            data: {
+              round: nextRound,
+              turn: nextTurn,
+            },
+          });
+          console.log(`次のターンを設定: ${nextRound}回目の${nextTurn}人目`);
+        }
+      }
 
       return {
         ...draft,
@@ -584,17 +785,17 @@ export const resolvers = {
 
       // 既存のドラフトステータスを確認
       const existingStatus = await prisma.draftStatus.findUnique({
-        where: { tournamentId }
+        where: { tournamentId },
       });
 
       let draftStatus;
-      
+
       if (existingStatus) {
         // 既存のステータスを更新
         draftStatus = await prisma.draftStatus.update({
           where: { tournamentId },
           data: { round, turn },
-          include: { tournament: true }
+          include: { tournament: true },
         });
       } else {
         // 新しいステータスを作成
@@ -603,16 +804,22 @@ export const resolvers = {
             tournamentId,
             round,
             turn,
-            isActive: true
+            isActive: true,
           },
-          include: { tournament: true }
+          include: { tournament: true },
         });
       }
 
       return {
         ...draftStatus,
-        createdAt: draftStatus.createdAt instanceof Date ? draftStatus.createdAt.toISOString() : draftStatus.createdAt,
-        updatedAt: draftStatus.updatedAt instanceof Date ? draftStatus.updatedAt.toISOString() : draftStatus.updatedAt,
+        createdAt:
+          draftStatus.createdAt instanceof Date
+            ? draftStatus.createdAt.toISOString()
+            : draftStatus.createdAt,
+        updatedAt:
+          draftStatus.updatedAt instanceof Date
+            ? draftStatus.updatedAt.toISOString()
+            : draftStatus.updatedAt,
       };
     },
   },
@@ -755,8 +962,14 @@ export const resolvers = {
 
       return {
         ...status,
-        createdAt: status.createdAt instanceof Date ? status.createdAt.toISOString() : status.createdAt,
-        updatedAt: status.updatedAt instanceof Date ? status.updatedAt.toISOString() : status.updatedAt,
+        createdAt:
+          status.createdAt instanceof Date
+            ? status.createdAt.toISOString()
+            : status.createdAt,
+        updatedAt:
+          status.updatedAt instanceof Date
+            ? status.updatedAt.toISOString()
+            : status.updatedAt,
       };
     },
   },

@@ -11,6 +11,10 @@ interface Tournament {
   name: string;
   createdAt: string;
   teams?: Team[];
+  draftStatus?: {
+    round: number;
+    turn: number;
+  };
 }
 
 // 参加者データの型定義
@@ -40,6 +44,16 @@ interface Draft {
   participantId: string;
   status: string;
   createdAt: string;
+  captain?: {
+    id: string;
+    name: string;
+  };
+  participant?: {
+    id: string;
+    name: string;
+    weapon: string;
+    xp: number;
+  };
 }
 
 // GraphQLクエリを実行する関数
@@ -55,6 +69,10 @@ async function fetchTournamentData(tournamentId: string, captainId: string) {
           name
           captainId
         }
+        draftStatus {
+          round
+          turn
+        }
       }
       participants(tournamentId: $tournamentId) {
         id
@@ -68,7 +86,25 @@ async function fetchTournamentData(tournamentId: string, captainId: string) {
           name
         }
       }
-      drafts(tournamentId: $tournamentId, captainId: $captainId) {
+      allDrafts: drafts(tournamentId: $tournamentId) {
+        id
+        tournamentId
+        captainId
+        participantId
+        status
+        createdAt
+        captain {
+          id
+          name
+        }
+        participant {
+          id
+          name
+          weapon
+          xp
+        }
+      }
+      captainDrafts: drafts(tournamentId: $tournamentId, captainId: $captainId) {
         id
         tournamentId
         captainId
@@ -122,7 +158,9 @@ async function fetchTournamentData(tournamentId: string, captainId: string) {
     tournament: result.data.tournament,
     captain,
     participants: unassignedParticipants,
-    drafts: result.data.drafts || [],
+    drafts: result.data.captainDrafts || [], // このキャプテンの指名データ
+    allDrafts: result.data.allDrafts || [], // 大会全体の指名データ
+    draftStatus: result.data.tournament.draftStatus,
   };
 }
 
@@ -283,6 +321,7 @@ export default function CaptainPersonalPage() {
   const [captain, setCaptain] = useState<Participant | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [allDrafts, setAllDrafts] = useState<Draft[]>([]); // 全てのドラフト情報
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isResetLoading, setIsResetLoading] = useState(false);
@@ -296,6 +335,26 @@ export default function CaptainPersonalPage() {
     null
   );
   const [nominationError, setNominationError] = useState<string | null>(null);
+  const [currentRoundDraftComplete, setCurrentRoundDraftComplete] =
+    useState(false);
+  const [draftStatus, setDraftStatus] =
+    useState<Tournament["draftStatus"]>(null);
+
+  // 現在のドラフトラウンドが完了しているか確認
+  const checkIfCurrentRoundDraftComplete = (
+    draftsArray: Draft[],
+    captainId: string | null
+  ) => {
+    if (!captainId) return false;
+
+    // 現在のキャプテンの指名のみをフィルタリング
+    const captainDrafts = draftsArray.filter(
+      (draft) => draft.captainId === captainId && draft.status === "pending"
+    );
+
+    // 現在のラウンドで既に選手を指名しているかどうか
+    return captainDrafts.length > 0;
+  };
 
   useEffect(() => {
     const tournamentId = params.id as string;
@@ -312,9 +371,18 @@ export default function CaptainPersonalPage() {
           setCaptain(data.captain);
           setParticipants(data.participants);
           setDrafts(data.drafts);
+          setAllDrafts(data.allDrafts || []); // 大会全体のドラフトデータをセット
+          setDraftStatus(data.draftStatus);
           setHasTeams(
             data.tournament.teams && data.tournament.teams.length > 0
           );
+
+          // ドラフト状況をチェック
+          const isDraftComplete = checkIfCurrentRoundDraftComplete(
+            data.drafts,
+            captainId
+          );
+          setCurrentRoundDraftComplete(isDraftComplete);
         } else {
           setError("データが見つかりませんでした。");
           setTimeout(() => {
@@ -435,6 +503,15 @@ export default function CaptainPersonalPage() {
       const captainId = params.captainId as string;
       const data = await fetchTournamentData(tournamentId, captainId);
       setDrafts(data.drafts);
+      setAllDrafts(data.allDrafts || []); // 大会全体のドラフトデータを更新
+      setParticipants(data.participants);
+
+      // ドラフト状況を更新
+      const isDraftComplete = checkIfCurrentRoundDraftComplete(
+        data.drafts,
+        captainId
+      );
+      setCurrentRoundDraftComplete(isDraftComplete);
     } catch (err) {
       console.error("Error nominating participant:", err);
       setNominationError(
@@ -461,6 +538,49 @@ export default function CaptainPersonalPage() {
         draft.participantId === participantId && draft.captainId === captain?.id
     );
   };
+
+  // 指名した選手データを取得する関数
+  const getNominatedParticipants = () => {
+    // このキャプテンの指名データ
+    const captainNominations = drafts.filter(
+      (draft) => draft.captainId === captain?.id
+    );
+
+    if (captainNominations.length === 0) return [];
+
+    // 指名データと対応する参加者情報を関連付ける
+    return captainNominations
+      .map((draft) => {
+        // 対応する参加者を探す
+        const nominatedParticipant = participants.find(
+          (p) => p.id === draft.participantId
+        );
+
+        // もし見つからない場合は、全ての指名データの中から対応するparticipant情報を探す
+        const draftWithParticipant = allDrafts.find(
+          (d) => d.participantId === draft.participantId && d.participant
+        );
+
+        // 参加者情報をマージ
+        return {
+          draft,
+          participant:
+            nominatedParticipant ||
+            (draftWithParticipant?.participant
+              ? {
+                  id: draftWithParticipant.participant.id,
+                  name: draftWithParticipant.participant.name,
+                  weapon: draftWithParticipant.participant.weapon,
+                  xp: draftWithParticipant.participant.xp,
+                  createdAt: "",
+                }
+              : null),
+        };
+      })
+      .filter((item) => item.participant !== null);
+  };
+
+  const nominatedParticipants = getNominatedParticipants();
 
   if (loading) {
     return (
@@ -692,7 +812,7 @@ export default function CaptainPersonalPage() {
       </div>
 
       {/* 指名済み参加者セクション */}
-      {drafts.length > 0 && (
+      {nominatedParticipants.length > 0 && (
         <div className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-xl font-semibold mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
             あなたの指名選手
@@ -717,11 +837,7 @@ export default function CaptainPersonalPage() {
                 </tr>
               </thead>
               <tbody>
-                {drafts.map((draft) => {
-                  const participant =
-                    participants.find((p) => p.id === draft.participantId) ||
-                    participants.find((p) => p.id === draft.participantId);
-
+                {nominatedParticipants.map(({ draft, participant }) => {
                   if (!participant) return null;
 
                   return (
