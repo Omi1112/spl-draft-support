@@ -338,7 +338,7 @@ export default function CaptainPersonalPage() {
   const [currentRoundDraftComplete, setCurrentRoundDraftComplete] =
     useState(false);
   const [draftStatus, setDraftStatus] =
-    useState<Tournament["draftStatus"]>(null);
+    useState<Tournament["draftStatus"]>(undefined);
 
   // 現在のドラフトラウンドが完了しているか確認
   const checkIfCurrentRoundDraftComplete = (

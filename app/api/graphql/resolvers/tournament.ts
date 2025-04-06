@@ -1083,6 +1083,8 @@ export const resolvers = {
         include: { captain: true },
       });
 
+      if (!team || !team.captain) return null;
+
       return {
         ...team.captain,
         createdAt:
@@ -1126,6 +1128,8 @@ export const resolvers = {
         where: { id: parent.id },
         include: { tournament: true },
       });
+
+      if (!team || !team.tournament) return null;
 
       return {
         ...team.tournament,

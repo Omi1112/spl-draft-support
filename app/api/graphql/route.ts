@@ -1,8 +1,9 @@
 import { createYoga } from "graphql-yoga";
 import { schema } from "./schema";
+import { NextRequest, NextResponse } from "next/server";
 
 // GraphQL APIをNext.jsのAPIルートとして構成
-const { handleRequest } = createYoga({
+const yoga = createYoga({
   schema,
   graphqlEndpoint: "/api/graphql",
   fetchAPI: {
@@ -12,4 +13,10 @@ const { handleRequest } = createYoga({
 });
 
 // Next.js App Router用のハンドラー
-export { handleRequest as GET, handleRequest as POST };
+export async function GET(request: NextRequest) {
+  return yoga.fetch(request);
+}
+
+export async function POST(request: NextRequest) {
+  return yoga.fetch(request);
+}

@@ -221,7 +221,9 @@ export default function TournamentDetails() {
         const data = await fetchTournament(id);
         if (data) {
           // キャプテン情報をもとに参加者データに isCaptain フラグを追加
-          const captainIds = data.captains.map((captain) => captain.id);
+          const captainIds = data.captains.map(
+            (captain: Participant) => captain.id
+          );
           const participantsWithCaptainFlag = data.participants.map((p) => ({
             ...p,
             isCaptain: captainIds.includes(p.id),
@@ -305,10 +307,10 @@ export default function TournamentDetails() {
       // キャプテン情報をもとに参加者データに isCaptain フラグを追加
       if (updatedTournament) {
         const captainIds = updatedTournament.captains.map(
-          (captain) => captain.id
+          (captain: Participant) => captain.id
         );
         const participantsWithCaptainFlag = updatedTournament.participants.map(
-          (p) => ({
+          (p: Participant) => ({
             ...p,
             isCaptain: captainIds.includes(p.id),
           })
