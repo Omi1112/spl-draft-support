@@ -106,6 +106,56 @@ export const resolvers = {
         })),
       }));
     },
+    // 指名一覧を取得するクエリ追加
+    drafts: async (
+      _: any,
+      { tournamentId, captainId }: { tournamentId: string; captainId?: string }
+    ) => {
+      const whereClause: any = { tournamentId };
+
+      // キャプテンIDがある場合はフィルター追加
+      if (captainId) {
+        whereClause.captainId = captainId;
+      }
+
+      const drafts = await prisma.draft.findMany({
+        where: whereClause,
+        include: {
+          captain: true,
+          participant: true,
+          tournament: true,
+        },
+      });
+
+      return drafts.map((draft) => ({
+        ...draft,
+        createdAt:
+          draft.createdAt instanceof Date
+            ? draft.createdAt.toISOString()
+            : draft.createdAt,
+        captain: {
+          ...draft.captain,
+          createdAt:
+            draft.captain.createdAt instanceof Date
+              ? draft.captain.createdAt.toISOString()
+              : draft.captain.createdAt,
+        },
+        participant: {
+          ...draft.participant,
+          createdAt:
+            draft.participant.createdAt instanceof Date
+              ? draft.participant.createdAt.toISOString()
+              : draft.participant.createdAt,
+        },
+        tournament: {
+          ...draft.tournament,
+          createdAt:
+            draft.tournament.createdAt instanceof Date
+              ? draft.tournament.createdAt.toISOString()
+              : draft.tournament.createdAt,
+        },
+      }));
+    },
   },
   Mutation: {
     createTournament: async (_: any, { input }: { input: any }) => {
@@ -339,6 +389,151 @@ export const resolvers = {
         return false;
       }
     },
+    // 指名ミューテーション追加
+    nominateParticipant: async (_: any, { input }: { input: any }) => {
+      const { tournamentId, captainId, participantId } = input;
+
+      // 既に同じ組み合わせの指名が存在するか確認
+      const existingDraft = await prisma.draft.findUnique({
+        where: {
+          tournamentId_captainId_participantId: {
+            tournamentId,
+            captainId,
+            participantId,
+          },
+        },
+      });
+
+      if (existingDraft) {
+        throw new Error("既にこの参加者を指名しています");
+      }
+
+      // 指名を作成
+      const draft = await prisma.draft.create({
+        data: {
+          tournamentId,
+          captainId,
+          participantId,
+          status: "pending",
+          createdAt: new Date(),
+        },
+        include: {
+          captain: true,
+          participant: true,
+          tournament: true,
+        },
+      });
+
+      return {
+        ...draft,
+        createdAt: draft.createdAt.toISOString(),
+        captain: {
+          ...draft.captain,
+          createdAt:
+            draft.captain.createdAt instanceof Date
+              ? draft.captain.createdAt.toISOString()
+              : draft.captain.createdAt,
+        },
+        participant: {
+          ...draft.participant,
+          createdAt:
+            draft.participant.createdAt instanceof Date
+              ? draft.participant.createdAt.toISOString()
+              : draft.participant.createdAt,
+        },
+        tournament: {
+          ...draft.tournament,
+          createdAt:
+            draft.tournament.createdAt instanceof Date
+              ? draft.tournament.createdAt.toISOString()
+              : draft.tournament.createdAt,
+        },
+      };
+    },
+
+    // ドラフトステータス更新ミューテーション追加
+    updateDraftStatus: async (_: any, { input }: { input: any }) => {
+      const { draftId, status } = input;
+
+      // 有効なステータス値を確認
+      if (!["pending", "confirmed", "cancelled"].includes(status)) {
+        throw new Error("無効なステータスです");
+      }
+
+      // ドラフトを更新
+      const updatedDraft = await prisma.draft.update({
+        where: { id: draftId },
+        data: { status },
+        include: {
+          captain: true,
+          participant: true,
+          tournament: true,
+        },
+      });
+
+      // 確定の場合は、チームメンバーに追加
+      if (status === "confirmed") {
+        // キャプテンのチームを検索
+        const captainTeam = await prisma.team.findFirst({
+          where: {
+            captainId: updatedDraft.captainId,
+            tournamentId: updatedDraft.tournamentId,
+          },
+        });
+
+        if (captainTeam) {
+          // チームに参加者を追加
+          try {
+            await prisma.teamMember.create({
+              data: {
+                teamId: captainTeam.id,
+                participantId: updatedDraft.participantId,
+              },
+            });
+
+            // 参加者のtournamentParticipantレコードを更新してチームを関連付け
+            await prisma.tournamentParticipant.updateMany({
+              where: {
+                tournamentId: updatedDraft.tournamentId,
+                participantId: updatedDraft.participantId,
+              },
+              data: {
+                teamId: captainTeam.id,
+              },
+            });
+          } catch (error) {
+            console.error("チームメンバー追加エラー:", error);
+            throw new Error("指名を確定できませんでした");
+          }
+        }
+      }
+
+      return {
+        ...updatedDraft,
+        createdAt: updatedDraft.createdAt.toISOString(),
+        captain: {
+          ...updatedDraft.captain,
+          createdAt:
+            updatedDraft.captain.createdAt instanceof Date
+              ? updatedDraft.captain.createdAt.toISOString()
+              : updatedDraft.captain.createdAt,
+        },
+        participant: {
+          ...updatedDraft.participant,
+          createdAt:
+            updatedDraft.participant.createdAt instanceof Date
+              ? updatedDraft.participant.createdAt.toISOString()
+              : updatedDraft.participant.createdAt,
+        },
+        tournament: {
+          ...updatedDraft.tournament,
+          createdAt:
+            updatedDraft.tournament.createdAt instanceof Date
+              ? updatedDraft.tournament.createdAt.toISOString()
+              : updatedDraft.tournament.createdAt,
+        },
+      };
+    },
   },
   // Tournamentタイプのリゾルバーを追加して日付のフォーマットを保証
   Tournament: {
@@ -438,6 +633,37 @@ export const resolvers = {
         })),
       }));
     },
+    drafts: async (parent: any) => {
+      const drafts = await prisma.draft.findMany({
+        where: { tournamentId: parent.id },
+        include: {
+          captain: true,
+          participant: true,
+        },
+      });
+
+      return drafts.map((draft) => ({
+        ...draft,
+        createdAt:
+          draft.createdAt instanceof Date
+            ? draft.createdAt.toISOString()
+            : draft.createdAt,
+        captain: {
+          ...draft.captain,
+          createdAt:
+            draft.captain.createdAt instanceof Date
+              ? draft.captain.createdAt.toISOString()
+              : draft.captain.createdAt,
+        },
+        participant: {
+          ...draft.participant,
+          createdAt:
+            draft.participant.createdAt instanceof Date
+              ? draft.participant.createdAt.toISOString()
+              : draft.participant.createdAt,
+        },
+      }));
+    },
   },
   Participant: {
     createdAt: (parent: any) => {
@@ -498,6 +724,37 @@ export const resolvers = {
             ? teamMember.team.createdAt.toISOString()
             : teamMember.team.createdAt,
       };
+    },
+    nominatedBy: async (parent: any) => {
+      const drafts = await prisma.draft.findMany({
+        where: { participantId: parent.id },
+        include: {
+          captain: true,
+          tournament: true,
+        },
+      });
+
+      return drafts.map((draft) => ({
+        ...draft,
+        createdAt:
+          draft.createdAt instanceof Date
+            ? draft.createdAt.toISOString()
+            : draft.createdAt,
+        captain: {
+          ...draft.captain,
+          createdAt:
+            draft.captain.createdAt instanceof Date
+              ? draft.captain.createdAt.toISOString()
+              : draft.captain.createdAt,
+        },
+        tournament: {
+          ...draft.tournament,
+          createdAt:
+            draft.tournament.createdAt instanceof Date
+              ? draft.tournament.createdAt.toISOString()
+              : draft.tournament.createdAt,
+        },
+      }));
     },
   },
   Team: {

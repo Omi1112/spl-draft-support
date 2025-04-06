@@ -19,6 +19,7 @@ model Tournament {
   createdAt      DateTime              @default(now())
   participations TournamentParticipant[]
   teams          Team[]
+  drafts         Draft[]               // 指名関連を追加
 }
 
 model Participant {
@@ -30,6 +31,8 @@ model Participant {
   participations TournamentParticipant[]
   captainTeams   Team[]                @relation("TeamCaptain")
   memberTeams    TeamMember[]
+  nominatedBy    Draft[]               @relation("NominatedParticipant") // 指名された参加者
+  nominations    Draft[]               @relation("NominatingCaptain")    // 指名したキャプテン
 }
 
 // 中間テーブル
@@ -70,4 +73,19 @@ model TeamMember {
   createdAt     DateTime    @default(now())
   
   @@unique([teamId, participantId]) // 同じチームに同じメンバーが複数回登録されないようにする
+}
+
+// ドラフト指名テーブル - 一時的な選手指名を記録する
+model Draft {
+  id             String      @id @default(uuid())
+  tournament     Tournament  @relation(fields: [tournamentId], references: [id])
+  tournamentId   String
+  captain        Participant @relation("NominatingCaptain", fields: [captainId], references: [id])
+  captainId      String
+  participant    Participant @relation("NominatedParticipant", fields: [participantId], references: [id])
+  participantId  String
+  createdAt      DateTime    @default(now())
+  status         String      @default("pending") // pending, confirmed, cancelled
+  
+  @@unique([tournamentId, captainId, participantId]) // 同じ大会で同じキャプテンが同じ参加者を重複指名できないようにする
 }
