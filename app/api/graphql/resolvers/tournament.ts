@@ -365,22 +365,36 @@ export const resolvers = {
       const { tournamentId } = input;
 
       try {
-        // 1. この大会に関連する全てのチームを取得
-        const teams = await prisma.team.findMany({
-          where: { tournamentId },
-          include: { members: true },
-        });
-
-        // 2. 各チームのメンバーを削除（外部キー制約のため）
-        for (const team of teams) {
-          await prisma.teamMember.deleteMany({
-            where: { teamId: team.id },
+        // トランザクションを使用してデータ削除を一括で行う
+        await prisma.$transaction(async (tx) => {
+          // 1. この大会に関連する全てのチームを取得
+          const teams = await tx.team.findMany({
+            where: { tournamentId },
+            include: { members: true },
           });
-        }
 
-        // 3. 全てのチームを削除
-        await prisma.team.deleteMany({
-          where: { tournamentId },
+          // 2. 各チームのメンバーを削除（外部キー制約のため）
+          for (const team of teams) {
+            await tx.teamMember.deleteMany({
+              where: { teamId: team.id },
+            });
+          }
+
+          // 3. 全てのチームを削除
+          await tx.team.deleteMany({
+            where: { tournamentId },
+          });
+
+          // 4. この大会の指名データを削除
+          await tx.draft.deleteMany({
+            where: { tournamentId },
+          });
+
+          // 5. 参加者のチーム関連付けをリセット
+          await tx.tournamentParticipant.updateMany({
+            where: { tournamentId },
+            data: { teamId: null },
+          });
         });
 
         return true;

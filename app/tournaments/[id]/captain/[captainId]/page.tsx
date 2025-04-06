@@ -365,7 +365,7 @@ export default function CaptainPersonalPage() {
 
     if (
       !window.confirm(
-        "本当にドラフトをリセットしますか？全てのチームが削除されます。"
+        "本当にドラフトをリセットしますか？全てのチームと指名履歴が削除されます。"
       )
     ) {
       return;
@@ -375,15 +375,17 @@ export default function CaptainPersonalPage() {
       setIsResetLoading(true);
       await resetDraft(tournament.id);
       setHasTeams(false);
+      setDrafts([]); // 指名データをクリア
 
       // リセット後にデータを再取得
       const tournamentId = params.id as string;
       const captainId = params.captainId as string;
       const data = await fetchTournamentData(tournamentId, captainId);
       setTournament(data.tournament);
+      setParticipants(data.participants);
 
       // 成功メッセージ
-      alert("ドラフトがリセットされました。");
+      alert("ドラフトと指名履歴がリセットされました。");
 
       // キャプテンページに移動
       router.push(`/tournaments/${tournament.id}`);
