@@ -72,7 +72,7 @@ export default function CaptainPersonalPage() {
           setAllDrafts(data.allDrafts || []); // 大会全体のドラフトデータをセット
           setDraftStatus(data.draftStatus);
           setHasTeams(
-            data.tournament.teams && data.tournament.teams.length > 0
+            !!(data.tournament.teams && data.tournament.teams.length > 0)
           );
 
           // ドラフト状況をチェック
