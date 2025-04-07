@@ -14,7 +14,8 @@
 				"cweijan.vscode-postgresql-client2",
 				"donjayamanne.githistory",
 				"eamodio.gitlens",
-				"mhutchie.git-graph"
+				"mhutchie.git-graph",
+				"firsttris.vscode-jest-runner"
 			],
 			"settings": {
 				"editor.formatOnSave": true,
