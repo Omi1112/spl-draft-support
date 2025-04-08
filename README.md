@@ -1,70 +1,70 @@
-# setup
+# セットアップ
 
 # pnpm
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+これは [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) でブートストラップされた [Next.js](https://nextjs.org) プロジェクトです。
 
-## Getting Started
+## はじめに
 
-First, run the development server:
+まず、開発サーバーを起動します:
 
 ```bash
 npm run dev
-# or
+# または
 yarn dev
-# or
+# または
 pnpm dev
-# or
+# または
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで [http://localhost:3000](http://localhost:3000) を開いて結果を確認します。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`app/page.tsx` を変更することでページの編集を開始できます。ファイルを編集するとページが自動的に更新されます。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+このプロジェクトでは、[Geist](https://vercel.com/font) という新しいフォントファミリーを自動的に最適化して読み込むために [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) を使用しています。
 
-## Prisma Migration Commands
+## Prisma マイグレーションコマンド
 
-This project uses Prisma ORM. Here are the most commonly used Prisma migration commands:
+このプロジェクトでは Prisma ORM を使用しています。以下は最も一般的に使用される Prisma マイグレーションコマンドです:
 
 ```bash
-# Generate a new migration from schema changes
+# スキーマの変更から新しいマイグレーションを生成
 npx prisma migrate dev --name <migration-name>
 
-# Apply migrations in production environments
+# 本番環境でマイグレーションを適用
 npx prisma migrate deploy
 
-# Reset the database and apply all migrations
+# データベースをリセットしてすべてのマイグレーションを適用
 npx prisma migrate reset
 
-# Check migration status
+# マイグレーションのステータスを確認
 npx prisma migrate status
 
-# Generate Prisma client
+# Prisma クライアントを生成
 npx prisma generate
 
-# Open Prisma Studio to view and edit data
+# Prisma Studio を開いてデータを表示および編集
 npx prisma studio
 ```
 
-Make sure your database connection string is properly set in the `.env` file:
+データベース接続文字列が `.env` ファイルに正しく設定されていることを確認してください:
 
 ```
 DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
 ```
 
-## Learn More
+## 詳しく学ぶ
 
-To learn more about Next.js, take a look at the following resources:
+Next.js について詳しく学ぶには、以下のリソースを参照してください:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Next.js ドキュメント](https://nextjs.org/docs) - Next.js の機能と API について学びます。
+- [Learn Next.js](https://nextjs.org/learn) - インタラクティブな Next.js チュートリアル。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+[Next.js GitHub リポジトリ](https://github.com/vercel/next.js) をチェックしてみてください - フィードバックや貢献をお待ちしています！
 
-## Deploy on Vercel
+## Vercel でデプロイ
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Next.js アプリをデプロイする最も簡単な方法は、Next.js の作成者による [Vercel プラットフォーム](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) を使用することです。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+詳細については、[Next.js デプロイメントドキュメント](https://nextjs.org/docs/app/building-your-application/deploying) をご覧ください。
