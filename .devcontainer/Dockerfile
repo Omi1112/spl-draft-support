@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 作業ディレクトリを作成
-WORKDIR /workspace
+WORKDIR /workspaces/spl-draft-support
 
 # ユーザを作成
 ARG USERNAME=node
