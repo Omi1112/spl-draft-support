@@ -1,14 +1,39 @@
 // filepath: /workspace/app/api/graphql/resolvers/tournament/draftResolvers.ts
 import prisma from "../../utils/prisma";
 
+// 必要な型定義
+type Context = Record<string, unknown>;
+type WhereClause = {
+  tournamentId: string;
+  captainId?: string;
+};
+
+// 入力型定義
+type NominateParticipantInput = {
+  tournamentId: string;
+  captainId: string;
+  participantId: string;
+};
+
+type UpdateDraftStatusInput = {
+  draftId: string;
+  status: "pending" | "confirmed" | "cancelled";
+};
+
+type UpdateDraftRoundInput = {
+  tournamentId: string;
+  round: number;
+  turn: number;
+};
+
 export const draftResolvers = {
   Query: {
     // 指名一覧を取得するクエリ
     drafts: async (
-      _: any,
+      _: Context,
       { tournamentId, captainId }: { tournamentId: string; captainId?: string }
     ) => {
-      const whereClause: any = { tournamentId };
+      const whereClause: WhereClause = { tournamentId };
 
       // キャプテンIDがある場合はフィルター追加
       if (captainId) {
@@ -54,7 +79,7 @@ export const draftResolvers = {
       }));
     },
     // ドラフトステータスを取得するクエリ
-    draftStatus: async (_: any, { tournamentId }: { tournamentId: string }) => {
+    draftStatus: async (_: Context, { tournamentId }: { tournamentId: string }) => {
       const status = await prisma.draftStatus.findUnique({
         where: { tournamentId },
         include: { tournament: true },
@@ -77,7 +102,7 @@ export const draftResolvers = {
   },
   Mutation: {
     // 指名ミューテーション
-    nominateParticipant: async (_: any, { input }: { input: any }) => {
+    nominateParticipant: async (_: Context, { input }: { input: NominateParticipantInput }) => {
       const { tournamentId, captainId, participantId } = input;
 
       // 既に同じ組み合わせの指名が存在するか確認
@@ -172,7 +197,8 @@ export const draftResolvers = {
 
         // 各参加者について、指名の競合を解決
         for (const [
-          participantId,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _participantId,
           drafts,
         ] of participantNominations.entries()) {
           if (drafts.length === 1) {
@@ -335,7 +361,7 @@ export const draftResolvers = {
     },
 
     // ドラフトステータス更新ミューテーション
-    updateDraftStatus: async (_: any, { input }: { input: any }) => {
+    updateDraftStatus: async (_: Context, { input }: { input: UpdateDraftStatusInput }) => {
       const { draftId, status } = input;
 
       // 有効なステータス値を確認
@@ -419,7 +445,7 @@ export const draftResolvers = {
     },
 
     // ドラフトラウンド更新ミューテーション
-    updateDraftRound: async (_: any, { input }: { input: any }) => {
+    updateDraftRound: async (_: Context, { input }: { input: UpdateDraftRoundInput }) => {
       const { tournamentId, round, turn } = input;
 
       // 既存のドラフトステータスを確認

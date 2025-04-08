@@ -1,10 +1,46 @@
 // filepath: /workspace/app/api/graphql/resolvers/tournament/participantResolvers.ts
 import prisma from "../../utils/prisma";
 
+// 型定義
+type Context = Record<string, unknown>;
+
+// 参加者の基本型
+interface ParticipantType {
+  id: string;
+  name: string;
+  weapon: string;
+  xp: number;
+  createdAt: Date | string;
+}
+
+// 入力型
+type CreateParticipantInput = {
+  name: string;
+  weapon: string;
+  xp: string; // フォーム入力から文字列で来ることを想定
+};
+
+type NewParticipantInput = {
+  name: string;
+  weapon: string;
+  xp: string;
+};
+
+type AddParticipantToTournamentInput = {
+  tournamentId: string;
+  participantId?: string;
+  participant?: NewParticipantInput;
+};
+
+type SetCaptainInput = {
+  tournamentId: string;
+  participantId: string;
+};
+
 export const participantResolvers = {
   Query: {
     participants: async (
-      _: any,
+      _: Context,
       { tournamentId }: { tournamentId: string }
     ) => {
       const participations = await prisma.tournamentParticipant.findMany({
@@ -23,7 +59,7 @@ export const participantResolvers = {
       return await prisma.participant.findMany();
     },
     tournamentCaptain: async (
-      _: any,
+      _: Context,
       { tournamentId }: { tournamentId: string }
     ) => {
       const captainParticipation = await prisma.tournamentParticipant.findFirst(
@@ -41,7 +77,7 @@ export const participantResolvers = {
       return captainParticipation ? captainParticipation.participant : null;
     },
     tournamentCaptains: async (
-      _: any,
+      _: Context,
       { tournamentId }: { tournamentId: string }
     ) => {
       const captainParticipations = await prisma.tournamentParticipant.findMany(
@@ -66,7 +102,7 @@ export const participantResolvers = {
     },
   },
   Mutation: {
-    createParticipant: async (_: any, { input }: { input: any }) => {
+    createParticipant: async (_: Context, { input }: { input: CreateParticipantInput }) => {
       const participant = await prisma.participant.create({
         data: {
           name: input.name,
@@ -81,7 +117,7 @@ export const participantResolvers = {
         createdAt: participant.createdAt.toISOString(),
       };
     },
-    addParticipantToTournament: async (_: any, { input }: { input: any }) => {
+    addParticipantToTournament: async (_: Context, { input }: { input: AddParticipantToTournamentInput }) => {
       let participantId = input.participantId;
 
       // 参加者IDが指定されていない場合は、新しい参加者を作成
@@ -119,7 +155,7 @@ export const participantResolvers = {
         createdAt: tournamentParticipant.createdAt.toISOString(),
       };
     },
-    setCaptain: async (_: any, { input }: { input: any }) => {
+    setCaptain: async (_: Context, { input }: { input: SetCaptainInput }) => {
       const { tournamentId, participantId } = input;
 
       // 現在のキャプテン状態を確認
@@ -178,13 +214,13 @@ export const participantResolvers = {
     },
   },
   Participant: {
-    createdAt: (parent: any) => {
+    createdAt: (parent: ParticipantType) => {
       if (parent.createdAt instanceof Date) {
         return parent.createdAt.toISOString();
       }
       return parent.createdAt;
     },
-    tournaments: async (parent: any) => {
+    tournaments: async (parent: ParticipantType) => {
       const participations = await prisma.tournamentParticipant.findMany({
         where: { participantId: parent.id },
         include: {
@@ -200,7 +236,7 @@ export const participantResolvers = {
             : p.tournament.createdAt,
       }));
     },
-    isCaptainOf: async (parent: any) => {
+    isCaptainOf: async (parent: ParticipantType) => {
       const captainParticipations = await prisma.tournamentParticipant.findMany(
         {
           where: {
@@ -221,7 +257,7 @@ export const participantResolvers = {
             : p.tournament.createdAt,
       }));
     },
-    team: async (parent: any) => {
+    team: async (parent: ParticipantType) => {
       const teamMember = await prisma.teamMember.findFirst({
         where: { participantId: parent.id },
         include: { team: true },
@@ -237,7 +273,7 @@ export const participantResolvers = {
             : teamMember.team.createdAt,
       };
     },
-    nominatedBy: async (parent: any) => {
+    nominatedBy: async (parent: ParticipantType) => {
       const drafts = await prisma.draft.findMany({
         where: { participantId: parent.id },
         include: {

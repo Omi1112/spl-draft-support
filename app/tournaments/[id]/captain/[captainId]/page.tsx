@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { formatDate } from "../../../../utils/formatDate";
 
 // 分割したコンポーネントとAPI、型定義のインポート
 import { Tournament, Participant, Draft, NominatedParticipantItem } from "./types";
@@ -35,24 +34,6 @@ export default function CaptainPersonalPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [nominationSuccess, setNominationSuccess] = useState<string | null>(null);
   const [nominationError, setNominationError] = useState<string | null>(null);
-  const [currentRoundDraftComplete, setCurrentRoundDraftComplete] = useState(false);
-  const [draftStatus, setDraftStatus] = useState<Tournament["draftStatus"]>(undefined);
-
-  // 現在のドラフトラウンドが完了しているか確認
-  const checkIfCurrentRoundDraftComplete = (
-    draftsArray: Draft[],
-    captainId: string | null
-  ) => {
-    if (!captainId) return false;
-
-    // 現在のキャプテンの指名のみをフィルタリング
-    const captainDrafts = draftsArray.filter(
-      (draft) => draft.captainId === captainId && draft.status === "pending"
-    );
-
-    // 現在のラウンドで既に選手を指名しているかどうか
-    return captainDrafts.length > 0;
-  };
 
   useEffect(() => {
     const tournamentId = params.id as string;
@@ -70,17 +51,9 @@ export default function CaptainPersonalPage() {
           setParticipants(data.participants);
           setDrafts(data.drafts);
           setAllDrafts(data.allDrafts || []); // 大会全体のドラフトデータをセット
-          setDraftStatus(data.draftStatus);
           setHasTeams(
             !!(data.tournament.teams && data.tournament.teams.length > 0)
           );
-
-          // ドラフト状況をチェック
-          const isDraftComplete = checkIfCurrentRoundDraftComplete(
-            data.drafts,
-            captainId
-          );
-          setCurrentRoundDraftComplete(isDraftComplete);
         } else {
           setError("データが見つかりませんでした。");
           setTimeout(() => {
@@ -203,13 +176,6 @@ export default function CaptainPersonalPage() {
       setDrafts(data.drafts);
       setAllDrafts(data.allDrafts || []); // 大会全体のドラフトデータを更新
       setParticipants(data.participants);
-
-      // ドラフト状況を更新
-      const isDraftComplete = checkIfCurrentRoundDraftComplete(
-        data.drafts,
-        captainId
-      );
-      setCurrentRoundDraftComplete(isDraftComplete);
     } catch (err) {
       console.error("Error nominating participant:", err);
       setNominationError(

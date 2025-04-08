@@ -1,9 +1,50 @@
 // filepath: /workspace/app/api/graphql/resolvers/tournament/teamResolvers.ts
 import prisma from "../../utils/prisma";
 
+// 型定義
+type Context = Record<string, unknown>;
+
+// チームに関連する型
+interface TeamType {
+  id: string;
+  name: string;
+  tournamentId: string;
+  captainId: string;
+  createdAt: Date | string;
+  captain?: CaptainType;
+  members?: MemberType[];
+  tournament?: TournamentType;
+}
+
+interface CaptainType {
+  id: string;
+  name: string;
+  createdAt: Date | string;
+  [key: string]: unknown;
+}
+
+interface MemberType {
+  id: string;
+  name: string;
+  createdAt: Date | string;
+  [key: string]: unknown;
+}
+
+interface TournamentType {
+  id: string;
+  name: string;
+  createdAt: Date | string;
+  [key: string]: unknown;
+}
+
+// 入力型
+type StartDraftInput = {
+  tournamentId: string;
+};
+
 export const teamResolvers = {
   Query: {
-    teams: async (_: any, { tournamentId }: { tournamentId: string }) => {
+    teams: async (_: Context, { tournamentId }: { tournamentId: string }) => {
       const teams = await prisma.team.findMany({
         where: { tournamentId },
         include: {
@@ -34,8 +75,8 @@ export const teamResolvers = {
   },
   Mutation: {
     startDraft: async (
-      _: any,
-      { input }: { input: { tournamentId: string } }
+      _: Context,
+      { input }: { input: StartDraftInput }
     ) => {
       const { tournamentId } = input;
 
@@ -121,7 +162,7 @@ export const teamResolvers = {
     },
   },
   Team: {
-    captain: async (parent: any) => {
+    captain: async (parent: TeamType) => {
       if (parent.captain) {
         return {
           ...parent.captain,
@@ -148,7 +189,7 @@ export const teamResolvers = {
       };
     },
 
-    members: async (parent: any) => {
+    members: async (parent: TeamType) => {
       if (parent.members) {
         return parent.members;
       }
@@ -167,7 +208,7 @@ export const teamResolvers = {
       }));
     },
 
-    tournament: async (parent: any) => {
+    tournament: async (parent: TeamType) => {
       if (parent.tournament) {
         return {
           ...parent.tournament,

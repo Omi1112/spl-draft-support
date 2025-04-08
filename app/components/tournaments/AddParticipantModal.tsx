@@ -1,7 +1,7 @@
 // filepath: /workspace/app/components/tournaments/AddParticipantModal.tsx
 // 参加者追加モーダル
 
-import React, { useState } from "react";
+import React from "react";
 import { ParticipantFormData } from "./types";
 
 interface AddParticipantModalProps {

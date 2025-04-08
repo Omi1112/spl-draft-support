@@ -3,7 +3,6 @@
 
 import React from "react";
 import { Tournament } from "./types";
-import { formatDate } from "../../utils/formatDate";
 
 interface TournamentInfoProps {
   tournament: Tournament;

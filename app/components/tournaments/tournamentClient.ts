@@ -1,7 +1,7 @@
 // filepath: /workspace/app/components/tournaments/tournamentClient.ts
 // トーナメント関連のGraphQLクライアント関数
 
-import { Tournament, Participant, TournamentParticipant } from "./types";
+import { Tournament, TournamentParticipant } from "./types";
 
 // GraphQLクエリを実行する関数
 export async function fetchTournament(id: string): Promise<Tournament> {

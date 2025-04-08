@@ -1,4 +1,4 @@
-import { TournamentDataResponse } from "./types";
+import { TournamentDataResponse, Participant } from "./types";
 
 // GraphQLクエリを実行する関数
 export async function fetchTournamentData(
@@ -88,7 +88,7 @@ export async function fetchTournamentData(
   }
 
   // キャプテンIDに一致する参加者を検索
-  const captain = result.data.participants.find((p: any) => p.id === captainId);
+  const captain = result.data.participants.find((p: Participant) => p.id === captainId);
 
   if (!captain) {
     throw new Error("指定されたキャプテンが見つかりませんでした");
@@ -96,7 +96,7 @@ export async function fetchTournamentData(
 
   // チームに所属していない参加者だけをフィルタリング
   const unassignedParticipants = result.data.participants.filter(
-    (p: any) => !p.team && !p.isCaptain
+    (p: Participant) => !p.team && !p.isCaptain
   );
 
   return {

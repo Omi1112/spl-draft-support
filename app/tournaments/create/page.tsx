@@ -4,8 +4,13 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+// トーナメントデータの型定義
+type TournamentData = {
+  name: string;
+};
+
 // GraphQL Mutationを実行する関数
-async function createTournament(tournamentData: any) {
+async function createTournament(tournamentData: TournamentData) {
   const mutation = `
     mutation CreateTournament($input: CreateTournamentInput!) {
       createTournament(input: $input) {

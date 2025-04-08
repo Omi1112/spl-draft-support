@@ -1,12 +1,31 @@
 // filepath: /workspace/app/api/graphql/resolvers/tournament/tournamentResolvers.ts
 import prisma from "../../utils/prisma";
 
+// 型定義
+type Context = Record<string, unknown>;
+
+// トーナメント関連の型
+interface TournamentType {
+  id: string;
+  name: string;
+  createdAt: Date | string;
+}
+
+// 入力型
+type CreateTournamentInput = {
+  name: string;
+};
+
+type ResetDraftInput = {
+  tournamentId: string;
+};
+
 export const tournamentResolvers = {
   Query: {
     tournaments: async () => {
       return await prisma.tournament.findMany();
     },
-    tournament: async (_: any, { id }: { id: string }) => {
+    tournament: async (_: Context, { id }: { id: string }) => {
       return await prisma.tournament.findUnique({
         where: { id },
         include: {
@@ -20,7 +39,7 @@ export const tournamentResolvers = {
     },
   },
   Mutation: {
-    createTournament: async (_: any, { input }: { input: any }) => {
+    createTournament: async (_: Context, { input }: { input: CreateTournamentInput }) => {
       const tournament = await prisma.tournament.create({
         data: {
           name: input.name,
@@ -35,8 +54,8 @@ export const tournamentResolvers = {
       };
     },
     resetDraft: async (
-      _: any,
-      { input }: { input: { tournamentId: string } }
+      _: Context,
+      { input }: { input: ResetDraftInput }
     ) => {
       const { tournamentId } = input;
 
@@ -85,14 +104,14 @@ export const tournamentResolvers = {
   },
   // Tournamentタイプのリゾルバーを追加して日付のフォーマットを保証
   Tournament: {
-    createdAt: (parent: any) => {
+    createdAt: (parent: TournamentType) => {
       // すでに文字列の場合はそのまま返し、Date型の場合はISOString形式に変換
       if (parent.createdAt instanceof Date) {
         return parent.createdAt.toISOString();
       }
       return parent.createdAt;
     },
-    participants: async (parent: any) => {
+    participants: async (parent: TournamentType) => {
       const participations = await prisma.tournamentParticipant.findMany({
         where: { tournamentId: parent.id },
         include: {
@@ -109,7 +128,7 @@ export const tournamentResolvers = {
         isCaptain: p.isCaptain,
       }));
     },
-    captain: async (parent: any) => {
+    captain: async (parent: TournamentType) => {
       const captainParticipation = await prisma.tournamentParticipant.findFirst(
         {
           where: {
@@ -132,7 +151,7 @@ export const tournamentResolvers = {
           }
         : null;
     },
-    captains: async (parent: any) => {
+    captains: async (parent: TournamentType) => {
       const captainParticipations = await prisma.tournamentParticipant.findMany(
         {
           where: {
@@ -153,7 +172,7 @@ export const tournamentResolvers = {
             : p.participant.createdAt,
       }));
     },
-    teams: async (parent: any) => {
+    teams: async (parent: TournamentType) => {
       const teams = await prisma.team.findMany({
         where: { tournamentId: parent.id },
         include: {
@@ -181,7 +200,7 @@ export const tournamentResolvers = {
         })),
       }));
     },
-    drafts: async (parent: any) => {
+    drafts: async (parent: TournamentType) => {
       const drafts = await prisma.draft.findMany({
         where: { tournamentId: parent.id },
         include: {
@@ -213,7 +232,7 @@ export const tournamentResolvers = {
       }));
     },
     // トーナメントとドラフトステータスのリレーションを解決
-    draftStatus: async (parent: any) => {
+    draftStatus: async (parent: TournamentType) => {
       const status = await prisma.draftStatus.findUnique({
         where: { tournamentId: parent.id },
       });
