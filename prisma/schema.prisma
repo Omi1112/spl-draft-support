@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl         = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model Tournament {
+  id             String                @id @default(uuid())
+  name           String
+  createdAt      DateTime              @default(now())
+  participations TournamentParticipant[]
+  teams          Team[]
+  drafts         Draft[]               // 指名関連を追加
+  draftStatus    DraftStatus?          // ドラフトステータスとのリレーション
+}
+
+model Participant {
+  id             String                @id @default(uuid())
+  name           String
+  weapon         String
+  xp             Int
+  createdAt      DateTime              @default(now())
+  participations TournamentParticipant[]
+  captainTeams   Team[]                @relation("TeamCaptain")
+  memberTeams    TeamMember[]
+  nominatedBy    Draft[]               @relation("NominatedParticipant") // 指名された参加者
+  nominations    Draft[]               @relation("NominatingCaptain")    // 指名したキャプテン
+}
+
+// 中間テーブル
+model TournamentParticipant {
+  id            String      @id @default(uuid())
+  tournament    Tournament  @relation(fields: [tournamentId], references: [id])
+  tournamentId  String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  createdAt     DateTime    @default(now()) // 参加日時
+  isCaptain     Boolean     @default(false) // 主将フラグ
+  teamId        String?     // どのチームに所属しているか（ドラフト後に設定）
+
+  @@unique([tournamentId, participantId]) // 同じ大会に同じ参加者が複数回登録されないようにする
+}
+
+// チームモデル
+model Team {
+  id           String       @id @default(uuid())
+  name         String
+  tournament   Tournament   @relation(fields: [tournamentId], references: [id])
+  tournamentId String
+  captain      Participant  @relation("TeamCaptain", fields: [captainId], references: [id])
+  captainId    String
+  members      TeamMember[]
+  createdAt    DateTime     @default(now())
+
+  @@unique([tournamentId, captainId]) // 同じ大会で同じ人が複数のチームのキャプテンにならないようにする
+}
+
+// チームメンバー中間テーブル
+model TeamMember {
+  id            String      @id @default(uuid())
+  team          Team        @relation(fields: [teamId], references: [id])
+  teamId        String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  createdAt     DateTime    @default(now())
+  
+  @@unique([teamId, participantId]) // 同じチームに同じメンバーが複数回登録されないようにする
+}
+
+// ドラフト指名テーブル - 一時的な選手指名を記録する
+model Draft {
+  id             String      @id @default(uuid())
+  tournament     Tournament  @relation(fields: [tournamentId], references: [id])
+  tournamentId   String
+  captain        Participant @relation("NominatingCaptain", fields: [captainId], references: [id])
+  captainId      String
+  participant    Participant @relation("NominatedParticipant", fields: [participantId], references: [id])
+  participantId  String
+  createdAt      DateTime    @default(now())
+  status         String      @default("pending") // pending, confirmed, cancelled
+  round          Int         @default(1) // ドラフトラウンド
+  turn           Int         @default(1) // ドラフトターン
+  
+  @@unique([tournamentId, captainId, participantId]) // 同じ大会で同じキャプテンが同じ参加者を重複指名できないようにする
+}
+
+// ドラフトステータス管理テーブル - ドラフト進行状況を管理する
+model DraftStatus {
+  id           String      @id @default(uuid())
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id])
+  tournamentId String      @unique // 1つの大会に1つのステータス
+  round        Int         @default(1) // ドラフトのラウンド (1回目、2回目...)
+  turn         Int         @default(1) // 順番 (1人目、2人目...)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}

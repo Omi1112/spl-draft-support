@@ -1,0 +1,53 @@
+{
+  "name": "my-nextjs-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "WATCHPACK_POLLING=true next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test:typecheck": "npm run typecheck && npm test",
+    "test:entity": "jest __tests__/api/core/domain/entities",
+    "test:usecase": "jest __tests__/api/core/application/useCases",
+    "test:repository": "jest __tests__/api/core/infrastructure/repositories",
+    "pretest": "npm run lint"
+  },
+  "dependencies": {
+    "@graphql-tools/schema": "^10.0.23",
+    "@prisma/client": "^6.5.0",
+    "graphql": "^16.10.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-yoga": "^5.13.2",
+    "next": "15.2.4",
+    "prisma": "^6.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.11.18",
+    "@swc/jest": "^0.2.37",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.24.0",
+    "eslint-config-next": "15.2.4",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.5.3",
+    "tailwindcss": "^4",
+    "typescript": "^5.8.3"
+  }
+}
