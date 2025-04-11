@@ -1,14 +1,23 @@
 import { PrismaClient } from '@prisma/client';
 
-// グローバルインスタンスの宣言
-declare global {
-  let prismaInstance: PrismaClient | undefined;
+/**
+ * PrismaClientのシングルトンインスタンスを提供するモジュール
+ * グローバル変数に依存しない実装
+ */
+
+// シングルトンインスタンスをモジュールスコープで管理
+let prismaInstance: PrismaClient | undefined;
+
+/**
+ * PrismaClientのインスタンスを取得する
+ * モジュールスコープでシングルトンを維持する
+ */
+export function getPrismaInstance(): PrismaClient {
+  if (!prismaInstance) {
+    prismaInstance = new PrismaClient();
+  }
+  return prismaInstance;
 }
 
-// シングルトンパターンでPrismaClientを提供
-export const prisma = global.prismaInstance || new PrismaClient();
-
-// 開発環境では再利用
-if (process.env.NODE_ENV !== 'production') {
-  global.prismaInstance = prisma;
-}
+// 後方互換性のために既存の参照をエクスポート
+export const prisma = getPrismaInstance();
