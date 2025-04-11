@@ -18,7 +18,6 @@ export const typeDefs = gql`
     weapon: String!
     xp: Int!
     createdAt: String!
-    isCaptain: Boolean!
     team: Team
   }
 

@@ -1,16 +1,18 @@
 import { GetTournamentUseCase } from '../../core/application/useCases/tournament/GetTournamentUseCase';
 import { GetTournamentsUseCase } from '../../core/application/useCases/tournament/GetTournamentsUseCase';
 import { CreateTournamentUseCase } from '../../core/application/useCases/tournament/CreateTournamentUseCase';
+import { GetTournamentParticipantsByTournamentIdUseCase } from '../../core/application/useCases/tournament/GetTournamentParticipantsByTournamentIdUseCase';
 import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
 import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
 import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
+import { PrismaTournamentParticipantRepository } from '../../core/infrastructure/repositories/PrismaTournamentParticipantRepository';
 import { CreateTournamentDTO } from '../../core/application/interfaces/DTOs';
-import { TournamentParticipant } from '../../core/domain/entities/TournamentParticipant';
 
 // リポジトリの初期化
 const tournamentRepository = new PrismaTournamentRepository();
 const participantRepository = new PrismaParticipantRepository();
 const teamRepository = new PrismaTeamRepository();
+const tournamentParticipantRepository = new PrismaTournamentParticipantRepository();
 
 // ユースケースの初期化
 const getTournamentsUseCase = new GetTournamentsUseCase(tournamentRepository);
@@ -20,6 +22,11 @@ const getTournamentUseCase = new GetTournamentUseCase(
   teamRepository
 );
 const createTournamentUseCase = new CreateTournamentUseCase(tournamentRepository);
+const getTournamentParticipantsByTournamentIdUseCase =
+  new GetTournamentParticipantsByTournamentIdUseCase(
+    tournamentParticipantRepository,
+    participantRepository
+  );
 
 // 型定義
 type Context = Record<string, unknown>;
@@ -159,12 +166,52 @@ export const tournamentResolvers = {
     },
   },
   Tournament: {
-    TournamentParticipants: async (parent: TournamentType) => {
-      // すでに取得済みの場合はそれを返す
-      if (parent.participants) return parent.participants;
+    tournamentParticipants: async (parent: TournamentType) => {
+      try {
+        // すでに取得済みの場合はそれを返す
+        if (parent.participants) return parent.participants;
 
-      // 必要に応じてここで参加者を取得するロジックを追加
-      return [];
+        // ユースケースを使用してトーナメント参加者を取得
+        const tournamentParticipants = await getTournamentParticipantsByTournamentIdUseCase.execute(
+          parent.id
+        );
+
+        // トーナメント参加者が見つからない場合は空配列を返す
+        if (!tournamentParticipants || tournamentParticipants.length === 0) {
+          return [];
+        }
+
+        // GraphQLスキーマに合わせた形式に変換
+        return tournamentParticipants
+          .map((tp) => {
+            if (!tp.participant) return null;
+
+            return {
+              Tournament: {
+                id: tp.tournamentId,
+                name: parent.name,
+                createdAt: parent.createdAt,
+              },
+              Participant: {
+                id: tp.participant.id,
+                name: tp.participant.name,
+                weapon: tp.participant.weapon,
+                xp: tp.participant.xp,
+                createdAt: tp.participant.createdAt,
+              },
+              isCaptain: tp.isCaptain,
+              createdAt: tp.createdAt,
+            };
+          })
+          .filter((item) => item !== null);
+      } catch (error) {
+        console.error('トーナメント参加者取得エラー:', error);
+        throw new Error(
+          `トーナメント参加者の取得に失敗しました: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`
+        );
+      }
     },
     teams: async (parent: TournamentType) => {
       // すでに取得済みの場合はそれを返す
