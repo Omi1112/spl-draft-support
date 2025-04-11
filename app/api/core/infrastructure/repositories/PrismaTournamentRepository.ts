@@ -105,7 +105,7 @@ export class PrismaTournamentRepository implements TournamentRepository {
 
   async save(tournament: Tournament): Promise<Tournament> {
     // トーナメント情報の更新または作成
-    const updatedTournament = await this.prismaClient.tournament.upsert({
+    await this.prismaClient.tournament.upsert({
       where: { id: tournament.id.value },
       update: {
         name: tournament.name,

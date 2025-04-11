@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 // グローバルインスタンスの宣言
 declare global {
-  var prismaInstance: PrismaClient | undefined;
+  let prismaInstance: PrismaClient | undefined;
 }
 
 // シングルトンパターンでPrismaClientを提供

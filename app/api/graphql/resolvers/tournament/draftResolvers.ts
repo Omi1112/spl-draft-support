@@ -1,6 +1,7 @@
 import { GetDraftsUseCase } from '../../../core/application/useCases/draft/GetDraftsUseCase';
 import { ResetDraftUseCase } from '../../../core/application/useCases/draft/ResetDraftUseCase';
 import { PrismaDraftRepository } from '../../../core/infrastructure/repositories/PrismaDraftRepository';
+import { prisma } from '../../../core/infrastructure/persistence/prisma/client';
 
 // リポジトリの初期化
 const draftRepository = new PrismaDraftRepository();
@@ -57,7 +58,6 @@ export const draftResolvers = {
         const isActive = status === 'in_progress';
 
         // このメソッドは別途リファクタリングが必要ですが、今回は直接Prismaを使用する実装のままとします
-        const prisma = require('../../../core/infrastructure/persistence/prisma/client').prisma;
         const draftStatus = await prisma.draftStatus.upsert({
           where: { tournamentId },
           update: {

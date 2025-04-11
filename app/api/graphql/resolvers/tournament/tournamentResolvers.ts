@@ -18,9 +18,27 @@ interface TournamentType {
   id: string;
   name: string;
   createdAt: Date | string;
-  participants?: any[];
-  teams?: any[];
-  draftStatus?: any;
+  participants?: Participant[];
+  teams?: TeamType[];
+  draftStatus?: DraftStatusType;
+}
+
+interface TeamType {
+  id: string;
+  name: string;
+  captainId: string;
+  createdAt: Date | string;
+  members?: Participant[];
+  captain?: Participant;
+}
+
+interface DraftStatusType {
+  tournamentId: string;
+  round: number;
+  turn: number;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 interface Participant {
@@ -40,12 +58,17 @@ interface Team {
 }
 
 // 型ガード関数
-const hasValueProperty = (obj: any): obj is { value: string } => {
-  return obj && typeof obj === 'object' && 'value' in obj;
+const hasValueProperty = (obj: unknown): obj is { value: string } => {
+  return obj !== null && typeof obj === 'object' && 'value' in obj;
 };
 
-const hasToISOStringMethod = (obj: any): obj is { toISOString: () => string } => {
-  return obj && typeof obj === 'object' && typeof obj.toISOString === 'function';
+const hasToISOStringMethod = (obj: unknown): obj is { toISOString: () => string } => {
+  return (
+    obj !== null &&
+    typeof obj === 'object' &&
+    'toISOString' in obj &&
+    typeof (obj as { toISOString: unknown }).toISOString === 'function'
+  );
 };
 
 // IDの取得を統一するヘルパー関数
@@ -83,7 +106,7 @@ export const tournamentResolvers = {
     },
 
     // 特定のトーナメントを取得
-    tournament: async (_: any, { id }: { id: string }) => {
+    tournament: async (_: Context, { id }: { id: string }) => {
       try {
         const tournament = await getTournamentUseCase.execute(id);
         if (!tournament) return null;

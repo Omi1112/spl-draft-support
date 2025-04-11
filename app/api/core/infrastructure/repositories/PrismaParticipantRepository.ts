@@ -147,7 +147,7 @@ export class PrismaParticipantRepository implements ParticipantRepository {
 
   async save(participant: Participant): Promise<Participant> {
     // 参加者情報の更新または作成
-    const savedParticipant = await prisma.participant.upsert({
+    await prisma.participant.upsert({
       where: { id: participant.id.value },
       update: {
         name: participant.name,

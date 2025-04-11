@@ -11,14 +11,23 @@ const participantRepository = new PrismaParticipantRepository();
 // 型定義
 type Context = Record<string, unknown>;
 
+// 参加者の型定義
+interface ParticipantType {
+  id: string;
+  name: string;
+  weapon: string;
+  xp: number;
+  createdAt: Date | string;
+}
+
 // チームの基本型
 interface TeamType {
   id: string;
   name: string;
   captainId: string;
   createdAt: Date | string;
-  members?: any[];
-  captain?: any;
+  members?: ParticipantType[];
+  captain?: ParticipantType;
 }
 
 // 入力型
