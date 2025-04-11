@@ -22,7 +22,7 @@ export class Tournament {
    * @returns 新しいトーナメントエンティティ
    */
   static create(name: string): Tournament {
-    return new Tournament(TournamentId.create(), name, new Date(), [], DraftStatus.create());
+    return new Tournament(TournamentId.create(), name, new Date(), DraftStatus.create());
   }
 
   /**
