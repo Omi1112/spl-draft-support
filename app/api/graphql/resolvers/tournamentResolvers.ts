@@ -1,15 +1,24 @@
-import { GetTournamentUseCase } from '../../../core/application/useCases/tournament/GetTournamentUseCase';
-import { GetTournamentsUseCase } from '../../../core/application/useCases/tournament/GetTournamentsUseCase';
-import { CreateTournamentUseCase } from '../../../core/application/useCases/tournament/CreateTournamentUseCase';
-import { PrismaTournamentRepository } from '../../../core/infrastructure/repositories/PrismaTournamentRepository';
-import { CreateTournamentDTO } from '../../../core/application/interfaces/DTOs';
+import { GetTournamentUseCase } from '../../core/application/useCases/tournament/GetTournamentUseCase';
+import { GetTournamentsUseCase } from '../../core/application/useCases/tournament/GetTournamentsUseCase';
+import { CreateTournamentUseCase } from '../../core/application/useCases/tournament/CreateTournamentUseCase';
+import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
+import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
+import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
+import { CreateTournamentDTO } from '../../core/application/interfaces/DTOs';
+import { TournamentParticipant } from '../../core/domain/entities/TournamentParticipant';
 
 // リポジトリの初期化
 const tournamentRepository = new PrismaTournamentRepository();
+const participantRepository = new PrismaParticipantRepository();
+const teamRepository = new PrismaTeamRepository();
 
 // ユースケースの初期化
 const getTournamentsUseCase = new GetTournamentsUseCase(tournamentRepository);
-const getTournamentUseCase = new GetTournamentUseCase(tournamentRepository);
+const getTournamentUseCase = new GetTournamentUseCase(
+  tournamentRepository,
+  participantRepository,
+  teamRepository
+);
 const createTournamentUseCase = new CreateTournamentUseCase(tournamentRepository);
 
 // 型定義
@@ -115,27 +124,7 @@ export const tournamentResolvers = {
           id: extractId(tournament.id),
           name: tournament.name,
           createdAt: extractDate(tournament.createdAt),
-          participants: tournament.participants?.map((p: Participant) => ({
-            id: extractId(p.id),
-            name: p.name,
-            weapon: p.weapon,
-            xp: p.xp,
-            createdAt: extractDate(p.createdAt),
-            isCaptain: p.isCaptain,
-          })),
-          teams: tournament.teams?.map((t: Team) => ({
-            id: extractId(t.id),
-            name: t.name,
-            captainId: extractId(t.captainId),
-            createdAt: t.createdAt ? extractDate(t.createdAt) : new Date().toISOString(),
-          })),
-          draftStatus: tournament.draftStatus
-            ? {
-                round: tournament.draftStatus.round,
-                turn: tournament.draftStatus.turn,
-                status: tournament.draftStatus.status,
-              }
-            : null,
+          draftStatus: tournament.draftStatus,
         };
       } catch (error) {
         console.error('トーナメント取得エラー:', error);
@@ -170,7 +159,7 @@ export const tournamentResolvers = {
     },
   },
   Tournament: {
-    participants: async (parent: TournamentType) => {
+    TournamentParticipants: async (parent: TournamentType) => {
       // すでに取得済みの場合はそれを返す
       if (parent.participants) return parent.participants;
 

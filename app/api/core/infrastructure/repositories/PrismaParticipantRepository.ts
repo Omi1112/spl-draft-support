@@ -1,5 +1,4 @@
 import { Participant } from '../../domain/entities/Participant';
-import { Team } from '../../domain/entities/Team';
 import { ParticipantRepository } from '../../domain/repositories/ParticipantRepository';
 import { ParticipantId } from '../../domain/valueObjects/ParticipantId';
 import { TeamId } from '../../domain/valueObjects/TeamId';
@@ -7,6 +6,22 @@ import { TournamentId } from '../../domain/valueObjects/TournamentId';
 import { prisma } from '../persistence/prisma/client';
 
 export class PrismaParticipantRepository implements ParticipantRepository {
+  /**
+   * プリズマのデータをドメインエンティティに変換する
+   * @param participantData プリズマから取得した参加者データ
+   * @returns ドメインエンティティ
+   */
+  private mapToDomainEntity(participantData: any): Participant {
+    // reconstruct メソッドでエンティティを作成
+    return Participant.reconstruct(
+      participantData.id,
+      participantData.name,
+      participantData.weapon,
+      participantData.xp,
+      participantData.createdAt
+    );
+  }
+
   async findById(id: ParticipantId): Promise<Participant | null> {
     const participant = await prisma.participant.findUnique({
       where: { id: id.value },
@@ -17,6 +32,7 @@ export class PrismaParticipantRepository implements ParticipantRepository {
           },
         },
         captainTeams: true,
+        participations: true,
       },
     });
 
@@ -24,50 +40,7 @@ export class PrismaParticipantRepository implements ParticipantRepository {
       return null;
     }
 
-    // チーム情報の変換
-    let team: Team | undefined;
-
-    // キャプテンとして所属しているチームがあるか確認
-    if (participant.captainTeams && participant.captainTeams.length > 0) {
-      const teamData = participant.captainTeams[0]; // 最初のチームを取得
-      team = new Team(
-        new TeamId(teamData.id),
-        teamData.name,
-        new ParticipantId(teamData.captainId),
-        [] // メンバー情報はここでは取得しない
-      );
-    }
-    // メンバーとして所属しているチームがあるか確認
-    else if (participant.memberTeams && participant.memberTeams.length > 0) {
-      const memberTeam = participant.memberTeams[0]; // 最初のチームを取得
-      if (memberTeam.team) {
-        team = new Team(
-          new TeamId(memberTeam.team.id),
-          memberTeam.team.name,
-          new ParticipantId(memberTeam.team.captainId),
-          [] // メンバー情報はここでは取得しない
-        );
-      }
-    }
-
-    // キャプテンかどうかを判断
-    // participantオブジェクトから直接isCaptainプロパティを取得するか、
-    // captainTeamsの有無で判断します
-    const isCaptainValue =
-      'isCaptain' in participant
-        ? !!participant.isCaptain
-        : participant.captainTeams && participant.captainTeams.length > 0;
-
-    // 参加者エンティティの生成
-    return new Participant(
-      new ParticipantId(participant.id),
-      participant.name,
-      participant.weapon,
-      participant.xp,
-      participant.createdAt,
-      isCaptainValue,
-      team
-    );
+    return this.mapToDomainEntity(participant);
   }
 
   async findByTournamentId(tournamentId: TournamentId): Promise<Participant[]> {
@@ -94,18 +67,7 @@ export class PrismaParticipantRepository implements ParticipantRepository {
       },
     });
 
-    return participants.map((p) => {
-      // チーム情報なしで参加者エンティティを生成
-      const isCaptain = p.participations.some((part) => part.isCaptain);
-      return new Participant(
-        new ParticipantId(p.id),
-        p.name,
-        p.weapon,
-        p.xp,
-        p.createdAt,
-        isCaptain
-      );
-    });
+    return participants.map((p) => this.mapToDomainEntity(p));
   }
 
   async findCaptains(tournamentId: TournamentId): Promise<Participant[]> {
@@ -133,16 +95,7 @@ export class PrismaParticipantRepository implements ParticipantRepository {
       },
     });
 
-    return captains.map((c) => {
-      return new Participant(
-        new ParticipantId(c.id),
-        c.name,
-        c.weapon,
-        c.xp,
-        c.createdAt,
-        true // キャプテンのみを取得するクエリなのでtrue
-      );
-    });
+    return captains.map((c) => this.mapToDomainEntity(c));
   }
 
   async save(participant: Participant): Promise<Participant> {
@@ -162,49 +115,6 @@ export class PrismaParticipantRepository implements ParticipantRepository {
         createdAt: participant.createdAt,
       },
     });
-
-    // チーム関連の処理
-    if (participant.team) {
-      const teamId = participant.team.id.value;
-
-      // キャプテンの場合、captainTeamsリレーションを使用
-      if (participant.isCaptain) {
-        // すでにキャプテンとして別のチームに所属している場合は更新を避ける
-        const existingCaptainTeams = await prisma.team.findMany({
-          where: {
-            captainId: participant.id.value,
-            id: { not: teamId },
-          },
-        });
-
-        // 新しいチームのキャプテンとして設定
-        if (existingCaptainTeams.length === 0) {
-          await prisma.team.update({
-            where: { id: teamId },
-            data: {
-              captainId: participant.id.value,
-            },
-          });
-        }
-      } else {
-        // メンバーとしてチームに追加（もし存在しない場合）
-        const existingMembership = await prisma.teamMember.findFirst({
-          where: {
-            teamId: teamId,
-            participantId: participant.id.value,
-          },
-        });
-
-        if (!existingMembership) {
-          await prisma.teamMember.create({
-            data: {
-              teamId: teamId,
-              participantId: participant.id.value,
-            },
-          });
-        }
-      }
-    }
 
     return participant;
   }

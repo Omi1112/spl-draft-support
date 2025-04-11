@@ -1,5 +1,5 @@
-import { Team } from './Team';
 import { ParticipantId } from '../valueObjects/ParticipantId';
+import { TeamId } from '../valueObjects/TeamId';
 
 export class Participant {
   private readonly _id: ParticipantId;
@@ -7,8 +7,6 @@ export class Participant {
   private _weapon: string;
   private _xp: number;
   private _createdAt: Date;
-  private _isCaptain: boolean;
-  private _team?: Team;
 
   constructor(
     id: ParticipantId,
@@ -16,16 +14,43 @@ export class Participant {
     weapon: string,
     xp: number,
     createdAt: Date,
-    isCaptain: boolean = false,
-    team?: Team
+    teamId?: TeamId
   ) {
     this._id = id;
     this._name = name;
     this._weapon = weapon;
     this._xp = xp;
     this._createdAt = createdAt;
-    this._isCaptain = isCaptain;
-    this._team = team;
+  }
+
+  /**
+   * 新しい参加者を作成
+   * @param name 名前
+   * @param weapon 武器
+   * @param xp 経験値
+   * @returns 新しい参加者エンティティ
+   */
+  static create(name: string, weapon: string, xp: number): Participant {
+    return new Participant(ParticipantId.create(), name, weapon, xp, new Date());
+  }
+
+  /**
+   * 既存の参加者データから復元
+   * @param id 参加者ID
+   * @param name 名前
+   * @param weapon 武器
+   * @param xp 経験値
+   * @param createdAt 作成日時
+   * @returns 復元された参加者エンティティ
+   */
+  static reconstruct(
+    id: string,
+    name: string,
+    weapon: string,
+    xp: number,
+    createdAt: Date
+  ): Participant {
+    return new Participant(ParticipantId.reconstruct(id), name, weapon, xp, createdAt);
   }
 
   // Getters
@@ -47,39 +72,5 @@ export class Participant {
 
   get createdAt(): Date {
     return this._createdAt;
-  }
-
-  get isCaptain(): boolean {
-    return this._isCaptain;
-  }
-
-  get team(): Team | undefined {
-    return this._team;
-  }
-
-  // Methods
-  assignToTeam(team: Team): void {
-    this._team = team;
-  }
-
-  removeFromTeam(): void {
-    this._team = undefined;
-  }
-
-  makeCaptain(): void {
-    this._isCaptain = true;
-  }
-
-  removeCaptainRole(): void {
-    this._isCaptain = false;
-  }
-
-  // キャプテン状態を切り替えるメソッド
-  toggleCaptain(): void {
-    if (this._isCaptain) {
-      this.removeCaptainRole();
-    } else {
-      this.makeCaptain();
-    }
   }
 }

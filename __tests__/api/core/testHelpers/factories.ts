@@ -2,11 +2,11 @@ import { Tournament } from '../../../../app/api/core/domain/entities/Tournament'
 import { Participant } from '../../../../app/api/core/domain/entities/Participant';
 import { Team } from '../../../../app/api/core/domain/entities/Team';
 import { Draft } from '../../../../app/api/core/domain/entities/Draft';
+import { DraftStatus } from '../../../../app/api/core/domain/valueObjects/DraftStatus';
 import { TournamentId } from '../../../../app/api/core/domain/valueObjects/TournamentId';
 import { ParticipantId } from '../../../../app/api/core/domain/valueObjects/ParticipantId';
 import { TeamId } from '../../../../app/api/core/domain/valueObjects/TeamId';
 import { DraftId } from '../../../../app/api/core/domain/valueObjects/DraftId';
-import { DraftStatus } from '../../../../app/api/core/domain/valueObjects/DraftStatus';
 
 /**
  * テスト用のトーナメントを生成するファクトリ関数
@@ -15,18 +15,25 @@ export function createTestTournament(params: {
   id?: string;
   name?: string;
   createdAt?: Date;
-  participants?: Participant[];
-  teams?: Team[];
+  participantIds?: ParticipantId[];
+  teamIds?: TeamId[];
   draftStatus?: DraftStatus;
 }): Tournament {
   const id = params.id || `tournament-${Date.now()}`;
   const name = params.name || 'テストトーナメント';
   const createdAt = params.createdAt || new Date();
-  const participants = params.participants || [];
-  const teams = params.teams || [];
+  const participantIds = params.participantIds || [];
+  const teamIds = params.teamIds || [];
   const draftStatus = params.draftStatus;
 
-  return new Tournament(new TournamentId(id), name, createdAt, participants, teams, draftStatus);
+  return Tournament.reconstruct(
+    id,
+    name,
+    createdAt,
+    participantIds.map((p) => p.value),
+    teamIds.map((t) => t.value),
+    draftStatus
+  );
 }
 
 /**
@@ -39,7 +46,7 @@ export function createTestParticipant(params: {
   xp?: number;
   createdAt?: Date;
   isCaptain?: boolean;
-  team?: Team;
+  teamId?: TeamId;
 }): Participant {
   const id = params.id || `participant-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   const name = params.name || 'テスト参加者';
@@ -47,9 +54,9 @@ export function createTestParticipant(params: {
   const xp = params.xp !== undefined ? params.xp : 0;
   const createdAt = params.createdAt || new Date();
   const isCaptain = params.isCaptain !== undefined ? params.isCaptain : false;
-  const team = params.team;
+  const teamId = params.teamId;
 
-  return new Participant(new ParticipantId(id), name, weapon, xp, createdAt, isCaptain, team);
+  return Participant.reconstruct(id, name, weapon, xp, createdAt, isCaptain, teamId?.value);
 }
 
 /**
@@ -58,16 +65,20 @@ export function createTestParticipant(params: {
 export function createTestTeam(params: {
   id?: string;
   name?: string;
-  captainId: string;
-  members?: string[];
+  captainId: ParticipantId;
+  memberIds?: ParticipantId[];
 }): Team {
-  const id = params.id || `team-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const id = params.id || `team-${Date.now()}`;
   const name = params.name || 'テストチーム';
-  const members = params.members
-    ? params.members.map((member) => new ParticipantId(member))
-    : undefined;
+  const captainId = params.captainId;
+  const memberIds = params.memberIds || [captainId];
 
-  return new Team(new TeamId(id), name, new ParticipantId(params.captainId), members);
+  return Team.reconstruct(
+    id,
+    name,
+    captainId.value,
+    memberIds.map((m) => m.value)
+  );
 }
 
 /**
@@ -75,39 +86,29 @@ export function createTestTeam(params: {
  */
 export function createTestDraft(params: {
   id?: string;
-  tournamentId: string;
-  captainId: string;
-  participantId: string;
+  tournamentId: TournamentId;
+  captainId: ParticipantId;
+  participantId: ParticipantId;
   round?: number;
   turn?: number;
-  status?: string;
   createdAt?: Date;
 }): Draft {
-  const id = params.id || `draft-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-  const round = params.round !== undefined ? params.round : 1;
-  const turn = params.turn !== undefined ? params.turn : 1;
-  const status = params.status || 'pending';
+  const id = params.id || `draft-${Date.now()}`;
+  const tournamentId = params.tournamentId;
+  const captainId = params.captainId;
+  const participantId = params.participantId;
+  const round = params.round || 1;
+  const turn = params.turn || 1;
   const createdAt = params.createdAt || new Date();
 
-  return new Draft(
-    new DraftId(id),
-    new TournamentId(params.tournamentId),
-    new ParticipantId(params.captainId),
-    new ParticipantId(params.participantId),
+  return Draft.reconstruct(
+    id,
+    tournamentId.value,
+    captainId.value,
+    participantId.value,
     round,
     turn,
-    status,
-    createdAt
+    createdAt,
+    createdAt // updatedAtをcreatedAtと同じ値で渡す
   );
-}
-
-/**
- * テスト用のドラフトステータスを生成する関数
- */
-export function createTestDraftStatus(
-  status: 'not_started' | 'in_progress' | 'completed',
-  round: number = 1,
-  turn: number = 1
-): DraftStatus {
-  return new DraftStatus(round, turn, status);
 }

@@ -1,16 +1,31 @@
 export class DraftStatus {
   private readonly _round: number;
   private readonly _turn: number;
-  private readonly _status: 'not_started' | 'in_progress' | 'completed';
+  private readonly _isActive: boolean;
 
-  constructor(
-    round: number = 1,
-    turn: number = 1,
-    status: 'not_started' | 'in_progress' | 'completed' = 'not_started'
-  ) {
+  constructor(round: number = 1, turn: number = 1, isActive: boolean = true) {
     this._round = round;
     this._turn = turn;
-    this._status = status;
+    this._isActive = isActive;
+  }
+
+  /**
+   * 新しいドラフトステータスを作成
+   * @returns 新しいドラフトステータス
+   */
+  static create(): DraftStatus {
+    return new DraftStatus();
+  }
+
+  /**
+   * 既存のドラフトステータスから復元
+   * @param round ラウンド
+   * @param turn ターン
+   * @param status ステータス
+   * @returns 復元されたドラフトステータス
+   */
+  static reconstruct(round: number, turn: number, isActive: boolean): DraftStatus {
+    return new DraftStatus(round, turn, isActive);
   }
 
   get round(): number {
@@ -21,31 +36,19 @@ export class DraftStatus {
     return this._turn;
   }
 
-  get status(): 'not_started' | 'in_progress' | 'completed' {
-    return this._status;
-  }
-
-  isInProgress(): boolean {
-    return this._status === 'in_progress';
-  }
-
-  isCompleted(): boolean {
-    return this._status === 'completed';
-  }
-
-  static start(): DraftStatus {
-    return new DraftStatus(1, 1, 'in_progress');
+  get isActive(): boolean {
+    return this._isActive;
   }
 
   nextTurn(): DraftStatus {
-    return new DraftStatus(this._round, this._turn + 1, this._status);
+    return new DraftStatus(this._round, this._turn + 1, this.isActive);
   }
 
   nextRound(): DraftStatus {
-    return new DraftStatus(this._round + 1, 1, this._status);
+    return new DraftStatus(this._round + 1, 1, this.isActive);
   }
 
   complete(): DraftStatus {
-    return new DraftStatus(this._round, this._turn, 'completed');
+    return new DraftStatus(this._round, this._turn, this.isActive);
   }
 }

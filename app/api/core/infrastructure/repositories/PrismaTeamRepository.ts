@@ -114,4 +114,17 @@ export class PrismaTeamRepository implements TeamRepository {
       where: { id: id.value },
     });
   }
+
+  /**
+   * トーナメントIDに紐づくすべてのチームを削除
+   * @param tournamentId 対象のトーナメントID
+   */
+  async deleteByTournamentId(tournamentId: TournamentId): Promise<void> {
+    // 特定のトーナメントに属するすべてのチームを削除
+    // このメソッドは、DraftDomainServiceで使用されるため、
+    // チームメンバーの削除は別途TeamMemberRepositoryで行う
+    await prisma.team.deleteMany({
+      where: { tournamentId: tournamentId.value },
+    });
+  }
 }

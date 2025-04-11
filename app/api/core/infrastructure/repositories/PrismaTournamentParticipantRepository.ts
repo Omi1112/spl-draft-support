@@ -1,14 +1,22 @@
 // filepath: /workspace/app/api/core/infrastructure/repositories/PrismaTournamentParticipantRepository.ts
 import { TournamentParticipantRepository } from '../../domain/repositories/TournamentParticipantRepository';
+import { TournamentParticipant } from '../../domain/entities/TournamentParticipant';
+import { TournamentParticipantId } from '../../domain/valueObjects/TournamentParticipantId';
+import { TournamentId } from '../../domain/valueObjects/TournamentId';
+import { ParticipantId } from '../../domain/valueObjects/ParticipantId';
+import { TeamId } from '../../domain/valueObjects/TeamId';
 import { prisma } from '../persistence/prisma/client';
 
 export class PrismaTournamentParticipantRepository implements TournamentParticipantRepository {
-  async findByTournamentAndParticipant(tournamentId: string, participantId: string) {
+  async findByTournamentAndParticipant(
+    tournamentId: TournamentId,
+    participantId: ParticipantId
+  ): Promise<TournamentParticipant | null> {
     const tournamentParticipant = await prisma.tournamentParticipant.findUnique({
       where: {
         tournamentId_participantId: {
-          tournamentId,
-          participantId,
+          tournamentId: tournamentId.value,
+          participantId: participantId.value,
         },
       },
     });
@@ -17,56 +25,115 @@ export class PrismaTournamentParticipantRepository implements TournamentParticip
       return null;
     }
 
-    return {
-      id: tournamentParticipant.id,
-      tournamentId: tournamentParticipant.tournamentId,
-      participantId: tournamentParticipant.participantId,
-      createdAt: tournamentParticipant.createdAt,
-      isCaptain: tournamentParticipant.isCaptain,
-    };
+    return this.mapToDomainEntity(tournamentParticipant);
   }
 
-  async create(input: { tournamentId: string; participantId: string; isCaptain: boolean }) {
-    const tournamentParticipant = await prisma.tournamentParticipant.create({
-      data: {
-        tournamentId: input.tournamentId,
-        participantId: input.participantId,
-        isCaptain: input.isCaptain,
-        createdAt: new Date(),
-      },
-    });
-
-    return {
-      id: tournamentParticipant.id,
-      tournamentId: tournamentParticipant.tournamentId,
-      participantId: tournamentParticipant.participantId,
-      createdAt: tournamentParticipant.createdAt,
-      isCaptain: tournamentParticipant.isCaptain,
-    };
-  }
-
-  async update(tournamentId: string, participantId: string, data: { isCaptain?: boolean }) {
-    const tournamentParticipant = await prisma.tournamentParticipant.update({
+  async findById(id: TournamentParticipantId): Promise<TournamentParticipant | null> {
+    const tournamentParticipant = await prisma.tournamentParticipant.findUnique({
       where: {
-        tournamentId_participantId: {
-          tournamentId,
-          participantId,
-        },
+        id: id.value,
       },
-      data,
     });
 
-    return {
-      id: tournamentParticipant.id,
-      tournamentId: tournamentParticipant.tournamentId,
-      participantId: tournamentParticipant.participantId,
-      createdAt: tournamentParticipant.createdAt,
-      isCaptain: tournamentParticipant.isCaptain,
-    };
+    if (!tournamentParticipant) {
+      return null;
+    }
+
+    return this.mapToDomainEntity(tournamentParticipant);
   }
 
-  async updateCaptainFlag(tournamentId: string, participantId: string, isCaptain: boolean) {
-    // 既存のupdateメソッドを活用
-    return this.update(tournamentId, participantId, { isCaptain });
+  async findByTournamentId(tournamentId: TournamentId): Promise<TournamentParticipant[]> {
+    const tournamentParticipants = await prisma.tournamentParticipant.findMany({
+      where: {
+        tournamentId: tournamentId.value,
+      },
+    });
+
+    return tournamentParticipants.map((tp) => this.mapToDomainEntity(tp));
+  }
+
+  async save(tournamentParticipant: TournamentParticipant): Promise<TournamentParticipant> {
+    try {
+      // データベース上で既に存在するかをチェック
+      const existing = await prisma.tournamentParticipant.findUnique({
+        where: {
+          tournamentId_participantId: {
+            tournamentId: tournamentParticipant.tournamentId.value,
+            participantId: tournamentParticipant.participantId.value,
+          },
+        },
+      });
+
+      let result;
+
+      if (existing) {
+        // 更新処理
+        result = await prisma.tournamentParticipant.update({
+          where: { id: existing.id },
+          data: {
+            isCaptain: tournamentParticipant.isCaptain,
+            teamId: tournamentParticipant.teamId?.value || null,
+          },
+        });
+      } else {
+        // 新規作成処理
+        result = await prisma.tournamentParticipant.create({
+          data: {
+            id: tournamentParticipant.id.value,
+            tournamentId: tournamentParticipant.tournamentId.value,
+            participantId: tournamentParticipant.participantId.value,
+            isCaptain: tournamentParticipant.isCaptain,
+            teamId: tournamentParticipant.teamId?.value || null,
+            createdAt: tournamentParticipant.createdAt,
+          },
+        });
+      }
+
+      return this.mapToDomainEntity(result);
+    } catch (error) {
+      console.error(`TournamentParticipantの保存中にエラーが発生しました: ${error}`);
+      throw error;
+    }
+  }
+  async delete(id: TournamentParticipantId): Promise<void> {
+    await prisma.tournamentParticipant.delete({
+      where: {
+        id: id.value,
+      },
+    });
+  }
+
+  /**
+   * トーナメントに所属する全参加者のチーム参照をクリア
+   * @param tournamentId トーナメントID
+   */
+  async clearTeamReferences(tournamentId: TournamentId): Promise<void> {
+    await prisma.tournamentParticipant.updateMany({
+      where: { tournamentId: tournamentId.value },
+      data: { teamId: null },
+    });
+  }
+
+  /**
+   * データベースから取得したデータをドメインエンティティに変換する
+   * @param data データベースから取得したデータ
+   * @returns ドメインエンティティ
+   */
+  private mapToDomainEntity(data: {
+    id: string;
+    tournamentId: string;
+    participantId: string;
+    isCaptain: boolean;
+    teamId: string | null;
+    createdAt: Date;
+  }): TournamentParticipant {
+    return new TournamentParticipant(
+      new TournamentParticipantId(data.id),
+      new TournamentId(data.tournamentId),
+      new ParticipantId(data.participantId),
+      data.isCaptain,
+      data.teamId ? new TeamId(data.teamId) : null,
+      data.createdAt
+    );
   }
 }

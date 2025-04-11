@@ -15,18 +15,45 @@ export function createTestTournament(props: {
   id?: string;
   name?: string;
   createdAt?: Date;
-  participants?: Participant[];
-  teams?: Team[];
+  participantIds?: ParticipantId[];
+  teamIds?: TeamId[];
   draftStatus?: DraftStatus;
 }): Tournament {
-  const id = new TournamentId(props.id || `tournament-${Date.now()}`);
+  const idValue = props.id || `tournament-${Date.now()}`;
+  const id = new TournamentId(idValue);
   const name = props.name || 'テストトーナメント';
   const createdAt = props.createdAt || new Date();
-  const participants = props.participants || [];
-  const teams = props.teams || [];
+  const participantIds = props.participantIds || [];
+  const teamIds = props.teamIds || [];
   const draftStatus = props.draftStatus;
 
-  return new Tournament(id, name, createdAt, participants, teams, draftStatus);
+  return Tournament.reconstruct(
+    idValue,
+    name,
+    createdAt,
+    participantIds.map((p) => p.value),
+    teamIds.map((t) => t.value),
+    draftStatus
+  );
+}
+
+/**
+ * テスト用のドラフトステータスを作成する
+ */
+export function createTestDraftStatus(props: {
+  round?: number;
+  turn?: number;
+  status?: 'not_started' | 'in_progress' | 'completed';
+}): DraftStatus {
+  const round = props.round !== undefined ? props.round : 1;
+  const turn = props.turn !== undefined ? props.turn : 1;
+  const status = props.status || 'not_started';
+
+  return {
+    round,
+    turn,
+    status,
+  };
 }
 
 /**
@@ -39,17 +66,18 @@ export function createTestParticipant(props: {
   xp?: number;
   createdAt?: Date;
   isCaptain?: boolean;
-  team?: Team;
+  teamId?: TeamId;
 }): Participant {
-  const id = new ParticipantId(props.id || `participant-${Date.now()}`);
+  const idValue = props.id || `participant-${Date.now()}`;
+  const id = new ParticipantId(idValue);
   const name = props.name || 'テスト参加者';
   const weapon = props.weapon || 'テスト武器';
   const xp = props.xp !== undefined ? props.xp : 0;
   const createdAt = props.createdAt || new Date();
   const isCaptain = props.isCaptain !== undefined ? props.isCaptain : false;
-  const team = props.team;
+  const teamId = props.teamId;
 
-  return new Participant(id, name, weapon, xp, createdAt, isCaptain, team);
+  return Participant.reconstruct(idValue, name, weapon, xp, createdAt, isCaptain, teamId?.value);
 }
 
 /**
@@ -58,33 +86,22 @@ export function createTestParticipant(props: {
 export function createTestTeam(props: {
   id?: string;
   name?: string;
-  captainId: string | ParticipantId;
-  memberIds?: Array<string | ParticipantId>;
+  captainId: ParticipantId;
+  memberIds?: ParticipantId[];
 }): Team {
-  const id = new TeamId(props.id || `team-${Date.now()}`);
+  const idValue = props.id || `team-${Date.now()}`;
+  const id = new TeamId(idValue);
   const name = props.name || 'テストチーム';
+  const captainId = props.captainId;
+  // デフォルトではキャプテンをメンバーに含める
+  const memberIds = props.memberIds || [captainId];
 
-  // captainIdがstring型の場合、ParticipantIdに変換
-  const captainId =
-    props.captainId instanceof ParticipantId ? props.captainId : new ParticipantId(props.captainId);
-
-  // memberIdsが提供されていれば変換、なければ空配列
-  const memberIds = (props.memberIds || []).map((memberId) =>
-    memberId instanceof ParticipantId ? memberId : new ParticipantId(memberId)
+  return Team.reconstruct(
+    idValue,
+    name,
+    captainId.value,
+    memberIds.map((m) => m.value)
   );
-
-  return new Team(id, name, captainId, memberIds);
-}
-
-/**
- * テスト用のドラフトステータス値オブジェクトを作成する
- */
-export function createTestDraftStatus(
-  status: 'not_started' | 'in_progress' | 'completed' = 'not_started',
-  round: number = 1,
-  turn: number = 1
-): DraftStatus {
-  return new DraftStatus(round, turn, status);
 }
 
 /**
@@ -92,34 +109,30 @@ export function createTestDraftStatus(
  */
 export function createTestDraft(props: {
   id?: string;
-  tournamentId: string | TournamentId;
-  captainId: string | ParticipantId;
-  participantId: string | ParticipantId;
+  tournamentId: TournamentId;
+  captainId: ParticipantId;
+  participantId: ParticipantId;
   round?: number;
   turn?: number;
-  status?: string;
   createdAt?: Date;
 }): Draft {
-  const id = new DraftId(props.id || `draft-${Date.now()}`);
-
-  // 文字列の場合は適切な型に変換
-  const tournamentId =
-    props.tournamentId instanceof TournamentId
-      ? props.tournamentId
-      : new TournamentId(props.tournamentId);
-
-  const captainId =
-    props.captainId instanceof ParticipantId ? props.captainId : new ParticipantId(props.captainId);
-
-  const participantId =
-    props.participantId instanceof ParticipantId
-      ? props.participantId
-      : new ParticipantId(props.participantId);
-
+  const idValue = props.id || `draft-${Date.now()}`;
+  const id = new DraftId(idValue);
+  const tournamentId = props.tournamentId;
+  const captainId = props.captainId;
+  const participantId = props.participantId;
   const round = props.round || 1;
   const turn = props.turn || 1;
-  const status = props.status || 'drafted';
   const createdAt = props.createdAt || new Date();
 
-  return new Draft(id, tournamentId, captainId, participantId, round, turn, status, createdAt);
+  return Draft.reconstruct(
+    idValue,
+    tournamentId.value,
+    captainId.value,
+    participantId.value,
+    round,
+    turn,
+    createdAt,
+    createdAt // updatedAtをcreatedAtと同じ値で渡す
+  );
 }

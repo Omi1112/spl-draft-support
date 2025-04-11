@@ -1,5 +1,8 @@
-// モジュールとして認識されるためのダミー型
-export type TournamentParticipantRepositoryType = 'TournamentParticipantRepository';
+// filepath: /workspace/app/api/core/domain/repositories/TournamentParticipantRepository.ts
+import { TournamentParticipant } from '../entities/TournamentParticipant';
+import { TournamentParticipantId } from '../valueObjects/TournamentParticipantId';
+import { TournamentId } from '../valueObjects/TournamentId';
+import { ParticipantId } from '../valueObjects/ParticipantId';
 
 /**
  * トーナメント参加者リポジトリのインターフェース
@@ -13,54 +16,39 @@ export interface TournamentParticipantRepository {
    * @returns トーナメント参加者情報、見つからない場合はnull
    */
   findByTournamentAndParticipant(
-    tournamentId: string,
-    participantId: string
-  ): Promise<{
-    id: string;
-    tournamentId: string;
-    participantId: string;
-    isCaptain: boolean;
-    teamId?: string | null;
-    createdAt: Date;
-  } | null>;
+    tournamentId: TournamentId,
+    participantId: ParticipantId
+  ): Promise<TournamentParticipant | null>;
 
   /**
-   * 参加者のキャプテンフラグを更新
-   * @param tournamentId トーナメントID
-   * @param participantId 参加者ID
-   * @param isCaptain キャプテンかどうかのフラグ
-   * @returns 更新された参加者情報
+   * IDによるトーナメント参加者の検索
+   * @param id トーナメント参加者ID
+   * @returns トーナメント参加者情報、見つからない場合はnull
    */
-  updateCaptainFlag(
-    tournamentId: string,
-    participantId: string,
-    isCaptain: boolean
-  ): Promise<{
-    id: string;
-    tournamentId: string;
-    participantId: string;
-    isCaptain: boolean;
-    teamId?: string | null;
-    createdAt: Date;
-  }>;
+  findById(id: TournamentParticipantId): Promise<TournamentParticipant | null>;
 
   /**
-   * トーナメント参加者情報を更新
+   * トーナメントに参加している参加者の情報をすべて取得
    * @param tournamentId トーナメントID
-   * @param participantId 参加者ID
-   * @param data 更新データ
-   * @returns 更新された参加者情報
+   * @returns トーナメント参加者情報の配列
    */
-  update(
-    tournamentId: string,
-    participantId: string,
-    data: { isCaptain?: boolean }
-  ): Promise<{
-    id: string;
-    tournamentId: string;
-    participantId: string;
-    isCaptain: boolean;
-    teamId?: string | null;
-    createdAt: Date;
-  }>;
+  findByTournamentId(tournamentId: TournamentId): Promise<TournamentParticipant[]>;
+
+  /**
+   * トーナメント参加者情報を保存
+   * @param tournamentParticipant 保存するトーナメント参加者情報
+   * @returns 保存されたトーナメント参加者情報
+   */
+  save(tournamentParticipant: TournamentParticipant): Promise<TournamentParticipant>;
+  /**
+   * トーナメント参加者情報を削除
+   * @param id 削除するトーナメント参加者のID
+   */
+  delete(id: TournamentParticipantId): Promise<void>;
+
+  /**
+   * トーナメントに所属する全参加者のチーム参照をクリア
+   * @param tournamentId トーナメントID
+   */
+  clearTeamReferences(tournamentId: TournamentId): Promise<void>;
 }

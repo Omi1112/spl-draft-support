@@ -9,4 +9,10 @@ export interface TeamRepository {
   findByCaptainId(captainId: ParticipantId): Promise<Team | null>;
   save(team: Team): Promise<Team>;
   delete(id: TeamId): Promise<void>;
+
+  /**
+   * トーナメントIDに紐づくすべてのチームを削除
+   * @param tournamentId 対象のトーナメントID
+   */
+  deleteByTournamentId(tournamentId: TournamentId): Promise<void>;
 }

@@ -43,12 +43,12 @@ export class CreateTeamUseCase {
     // チームを保存
     const savedTeam = await this.teamRepository.save(team);
 
-    // キャプテンにチームを設定
-    captain.assignToTeam(savedTeam);
+    // キャプテンにチームIDを設定（オブジェクトではなくIDのみを割り当てる）
+    captain.assignToTeam(teamId);
     await this.participantRepository.save(captain);
 
-    // トーナメントにチームを追加
-    tournament.addTeam(savedTeam);
+    // トーナメントにチームIDを追加
+    tournament.addTeamId(teamId);
     await this.tournamentRepository.save(tournament);
 
     // DTOに変換して返却

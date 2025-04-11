@@ -1,14 +1,30 @@
-import { GetDraftsUseCase } from '../../../core/application/useCases/draft/GetDraftsUseCase';
-import { ResetDraftUseCase } from '../../../core/application/useCases/draft/ResetDraftUseCase';
-import { PrismaDraftRepository } from '../../../core/infrastructure/repositories/PrismaDraftRepository';
-import { prisma } from '../../../core/infrastructure/persistence/prisma/client';
+import { GetDraftsUseCase } from '../../core/application/useCases/draft/GetDraftsUseCase';
+import { ResetDraftUseCase } from '../../core/application/useCases/draft/ResetDraftUseCase';
+import { PrismaDraftRepository } from '../../core/infrastructure/repositories/PrismaDraftRepository';
+import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
+import { PrismaTournamentParticipantRepository } from '../../core/infrastructure/repositories/PrismaTournamentParticipantRepository';
+import { PrismaTeamMemberRepository } from '../../core/infrastructure/repositories/PrismaTeamMemberRepository';
+import { DraftDomainService } from '../../core/domain/services/DraftDomainService';
+import { prisma } from '../../core/infrastructure/persistence/prisma/client';
+import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
 
 // リポジトリの初期化
 const draftRepository = new PrismaDraftRepository();
+const teamRepository = new PrismaTeamRepository();
+const tournamentParticipantRepository = new PrismaTournamentParticipantRepository();
+const tournamentRepository = new PrismaTournamentRepository();
+
+// ドメインサービスの初期化
+const draftDomainService = new DraftDomainService(
+  draftRepository,
+  teamRepository,
+  tournamentParticipantRepository,
+  tournamentRepository
+);
 
 // ユースケースの初期化
 const getDraftsUseCase = new GetDraftsUseCase(draftRepository);
-const resetDraftUseCase = new ResetDraftUseCase(draftRepository);
+const resetDraftUseCase = new ResetDraftUseCase(draftDomainService);
 
 // 型定義
 type Context = Record<string, unknown>;

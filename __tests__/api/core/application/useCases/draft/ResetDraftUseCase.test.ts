@@ -1,73 +1,60 @@
+// filepath: /workspace/__tests__/api/core/application/useCases/draft/ResetDraftUseCase.test.ts
 import { ResetDraftUseCase } from '../../../../../../app/api/core/application/useCases/draft/ResetDraftUseCase';
-import { DraftRepository } from '../../../../../../app/api/core/domain/repositories/DraftRepository';
+import { DraftDomainService } from '../../../../../../app/api/core/domain/services/DraftDomainService';
 import { TournamentId } from '../../../../../../app/api/core/domain/valueObjects/TournamentId';
 
-// モックリポジトリの作成
-class MockDraftRepository implements DraftRepository {
-  resetMock = jest.fn();
-
-  async findById(): Promise<any> {
-    return null;
-  }
-
-  async findByTournamentId(): Promise<any[]> {
-    return [];
-  }
-
-  async findByCaptainId(): Promise<any[]> {
-    return [];
-  }
-
-  async findByTournamentAndCaptain(): Promise<any[]> {
-    return [];
-  }
-
-  async save(): Promise<any> {
-    return {};
-  }
-
-  async delete(): Promise<void> {
-    return;
-  }
-
-  async reset(tournamentId: TournamentId): Promise<boolean> {
-    return this.resetMock(tournamentId);
-  }
-}
-
 describe('ResetDraftUseCase', () => {
-  let mockDraftRepository: MockDraftRepository;
-  let resetDraftUseCase: ResetDraftUseCase;
+  // モックドメインサービスの作成
+  const mockDraftDomainService: jest.Mocked<DraftDomainService> = {
+    resetDraft: jest.fn(),
+  };
+
+  let useCase: ResetDraftUseCase;
 
   beforeEach(() => {
-    mockDraftRepository = new MockDraftRepository();
-    resetDraftUseCase = new ResetDraftUseCase(mockDraftRepository);
+    jest.clearAllMocks();
+    useCase = new ResetDraftUseCase(mockDraftDomainService);
   });
 
-  it('should call repository reset method with correct tournament id', async () => {
-    // 準備
-    const tournamentId = 'test-tournament-id';
-    mockDraftRepository.resetMock.mockResolvedValue(true);
+  it('正常にドラフトをリセットできること', async () => {
+    // モックの設定
+    mockDraftDomainService.resetDraft.mockResolvedValue(true);
 
     // 実行
-    const result = await resetDraftUseCase.execute(tournamentId);
+    const tournamentId = 'tournament-1';
+    const result = await useCase.execute(tournamentId);
 
     // 検証
-    expect(mockDraftRepository.resetMock).toHaveBeenCalledTimes(1);
-    expect(mockDraftRepository.resetMock).toHaveBeenCalledWith(
-      expect.objectContaining({ value: tournamentId })
-    );
     expect(result).toBe(true);
+    expect(mockDraftDomainService.resetDraft).toHaveBeenCalledTimes(1);
+    expect(mockDraftDomainService.resetDraft).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: tournamentId,
+      })
+    );
   });
 
-  it('should handle errors from repository', async () => {
-    // 準備
-    const tournamentId = 'test-tournament-id';
-    mockDraftRepository.resetMock.mockRejectedValue(new Error('Repository error'));
+  it('ドメインサービスがエラーを投げた場合、適切にハンドリングすること', async () => {
+    // モックの設定
+    mockDraftDomainService.resetDraft.mockRejectedValue(new Error('ドメインサービスエラー'));
 
     // 実行と検証
-    await expect(resetDraftUseCase.execute(tournamentId)).rejects.toThrow(
+    await expect(useCase.execute('tournament-1')).rejects.toThrow(
       'ドラフトのリセットに失敗しました'
     );
+    expect(mockDraftDomainService.resetDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it('不正なトーナメントIDの場合もドメインサービスに委譲すること', async () => {
+    // モックの設定
+    mockDraftDomainService.resetDraft.mockResolvedValue(true);
+
+    // 実行
+    const tournamentId = '';
+    await useCase.execute(tournamentId);
+
+    // 検証 - TournamentIdのバリデーションはドメインサービスで行われるべき
+    expect(mockDraftDomainService.resetDraft).toHaveBeenCalledTimes(1);
+    expect(mockDraftDomainService.resetDraft).toHaveBeenCalledWith(expect.any(TournamentId));
   });
 });

@@ -36,8 +36,8 @@ export class AddParticipantUseCase {
     // 参加者を保存
     const savedParticipant = await this.participantRepository.save(participant);
 
-    // トーナメントに参加者を追加
-    tournament.addParticipant(savedParticipant);
+    // トーナメントに参加者IDを追加（オブジェクトではなくIDのみを追加）
+    tournament.addParticipantId(participantId);
     await this.tournamentRepository.save(tournament);
 
     // DTOに変換して返却

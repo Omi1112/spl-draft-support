@@ -123,6 +123,19 @@ export class MockTeamRepository implements TeamRepository {
   async delete(id: TeamId): Promise<void> {
     this.teams = this.teams.filter((t) => t.id.value !== id.value);
   }
+
+  /**
+   * トーナメントIDに紐づくすべてのチームを削除
+   * @param tournamentId 対象のトーナメントID
+   */
+  async deleteByTournamentId(tournamentId: TournamentId): Promise<void> {
+    // トーナメントに関連するチームIDを取得
+    const teamIds = this.tournamentTeams.get(tournamentId.value) || [];
+    // これらのチームをteams配列から削除
+    this.teams = this.teams.filter((t) => !teamIds.some((id) => id.value === t.id.value));
+    // トーナメントとチームの関連を削除
+    this.tournamentTeams.delete(tournamentId.value);
+  }
 }
 
 /**
@@ -168,6 +181,14 @@ export class MockDraftRepository implements DraftRepository {
 
   async delete(id: DraftId): Promise<void> {
     this.drafts = this.drafts.filter((d) => d.id.value !== id.value);
+  }
+
+  /**
+   * トーナメントIDに紐づくすべてのドラフトを削除
+   * @param tournamentId 対象のトーナメントID
+   */
+  async deleteByTournamentId(tournamentId: TournamentId): Promise<void> {
+    this.drafts = this.drafts.filter((draft) => draft.tournamentId.value !== tournamentId.value);
   }
 
   async reset(tournamentId: TournamentId): Promise<boolean> {

@@ -18,9 +18,8 @@ export interface DraftRepository {
   delete(id: DraftId): Promise<void>;
 
   /**
-   * トーナメントのドラフト関連データをすべてリセット（削除して初期状態に戻す）
-   * @param tournamentId リセット対象のトーナメントID
-   * @returns リセット成功したかどうか
+   * トーナメントIDに紐づくすべてのドラフトを削除
+   * @param tournamentId 対象のトーナメントID
    */
-  reset(tournamentId: TournamentId): Promise<boolean>;
+  deleteByTournamentId(tournamentId: TournamentId): Promise<void>;
 }

@@ -112,9 +112,6 @@ describe('AddParticipantToTournamentUseCase', () => {
       tournament.addParticipant(participant2);
       tournament.addParticipant(participant3);
 
-      // canStartDraftがtrueを返すようにモック
-      jest.spyOn(tournament, 'canStartDraft').mockReturnValue(true);
-
       // ドラフトステータスを「進行中」に設定
       tournament.updateDraftStatus(createTestDraftStatus('in_progress', 1, 1));
       await mockTournamentRepository.save(tournament);
@@ -129,9 +126,6 @@ describe('AddParticipantToTournamentUseCase', () => {
       await expect(async () => {
         await addParticipantToTournamentUseCase.execute(dto);
       }).rejects.toThrow('ドラフト進行中は参加者を追加できません');
-
-      // モックをリセット
-      jest.spyOn(tournament, 'canStartDraft').mockRestore();
     });
 
     it('すでに参加者が上限に達している場合、エラーをスローするべき', async () => {

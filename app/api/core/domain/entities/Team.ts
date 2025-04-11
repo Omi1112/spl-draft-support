@@ -14,6 +14,33 @@ export class Team {
     this._memberIds = memberIds.length > 0 ? memberIds : [captainId];
   }
 
+  /**
+   * 新しいチームを作成
+   * @param name チーム名
+   * @param captainId キャプテンID
+   * @returns 新しいチームエンティティ
+   */
+  static create(name: string, captainId: ParticipantId): Team {
+    return new Team(TeamId.create(), name, captainId);
+  }
+
+  /**
+   * 既存のチームデータから復元
+   * @param id チームID
+   * @param name チーム名
+   * @param captainId キャプテンID
+   * @param memberIds メンバーID配列
+   * @returns 復元されたチームエンティティ
+   */
+  static reconstruct(id: string, name: string, captainId: string, memberIds: string[] = []): Team {
+    return new Team(
+      TeamId.reconstruct(id),
+      name,
+      ParticipantId.reconstruct(captainId),
+      memberIds.map((mid) => ParticipantId.reconstruct(mid))
+    );
+  }
+
   // Getters
   get id(): TeamId {
     return this._id;
@@ -31,7 +58,6 @@ export class Team {
     return [...this._memberIds];
   }
 
-  // Methods
   addMember(participantId: ParticipantId): void {
     if (!this._memberIds.some((id) => id.equals(participantId))) {
       this._memberIds.push(participantId);
@@ -54,7 +80,6 @@ export class Team {
     this._captainId = newCaptainId;
   }
 
-  // ドメインロジック
   isMember(participantId: ParticipantId): boolean {
     return this._memberIds.some((id) => id.equals(participantId));
   }

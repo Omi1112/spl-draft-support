@@ -56,12 +56,12 @@ export class AddParticipantToTournamentUseCase {
       input.isCaptain
     );
 
-    // トーナメントに参加者を追加
-    tournament.addParticipant(participant);
-    await this.tournamentRepository.save(tournament);
-
     // 参加者データを保存
     await this.participantRepository.save(participant);
+
+    // トーナメントに参加者IDを追加
+    tournament.addParticipantId(participantId);
+    await this.tournamentRepository.save(tournament);
 
     // DTOを返却
     return {

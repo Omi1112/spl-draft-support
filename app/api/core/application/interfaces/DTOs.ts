@@ -3,7 +3,7 @@ export interface TournamentDTO {
   id: string;
   name: string;
   createdAt: string;
-  participants?: ParticipantDTO[];
+  tournamentParticipants?: TournamentParticipantDTO[];
   teams?: TeamDTO[];
   draftStatus?: DraftStatusDTO;
 }
@@ -21,6 +21,13 @@ export interface ParticipantDTO {
   createdAt: string;
   isCaptain: boolean;
   teamId?: string;
+}
+
+export interface TournamentParticipantDTO {
+  tournament: TournamentDTO;
+  participant: ParticipantDTO;
+  isCaptain: boolean;
+  createdAt: string;
 }
 
 export interface CreateParticipantDTO {
@@ -49,12 +56,12 @@ export interface CreateTeamDTO {
 export interface DraftStatusDTO {
   round: number;
   turn: number;
-  status: 'not_started' | 'in_progress' | 'completed';
+  isActive: boolean;
 }
 
 export interface UpdateDraftStatusDTO {
   tournamentId: string;
   round: number;
   turn: number;
-  status: 'not_started' | 'in_progress' | 'completed';
+  isActive: boolean;
 }

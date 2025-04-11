@@ -138,65 +138,13 @@ export class PrismaDraftRepository implements DraftRepository {
   }
 
   /**
-   * トーナメントのドラフト関連データをすべてリセット（削除して初期状態に戻す）
-   * @param tournamentId リセット対象のトーナメントID
-   * @returns リセット成功したかどうか
+   * トーナメントIDに紐づくすべてのドラフトを削除
+   * @param tournamentId 対象のトーナメントID
    */
-  async reset(tournamentId: TournamentId): Promise<boolean> {
-    try {
-      // トランザクションを使用して複数の操作を原子的に実行
-      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        // 1. チームメンバーを削除（先に削除しないと外部キー制約に引っかかる）
-        const teams = await tx.team.findMany({
-          where: { tournamentId: tournamentId.value },
-          select: { id: true },
-        });
-
-        const teamIds = teams.map((team: { id: string }) => team.id);
-
-        if (teamIds.length > 0) {
-          await tx.teamMember.deleteMany({
-            where: { teamId: { in: teamIds } },
-          });
-        }
-
-        // 2. チームを削除
-        await tx.team.deleteMany({
-          where: { tournamentId: tournamentId.value },
-        });
-
-        // 3. TournamentParticipantの参照をクリア
-        await tx.tournamentParticipant.updateMany({
-          where: { tournamentId: tournamentId.value },
-          data: { teamId: null },
-        });
-
-        // 4. ドラフト履歴を削除
-        await tx.draft.deleteMany({
-          where: { tournamentId: tournamentId.value },
-        });
-
-        // 5. 既存のドラフトステータスを削除
-        await tx.draftStatus.deleteMany({
-          where: { tournamentId: tournamentId.value },
-        });
-
-        // 6. 新しいドラフトステータスを初期状態で作成
-        await tx.draftStatus.create({
-          data: {
-            tournamentId: tournamentId.value,
-            round: 1,
-            turn: 1,
-            isActive: true,
-          },
-        });
-      });
-
-      return true;
-    } catch (error) {
-      console.error('ドラフトリセットエラー:', error);
-      throw new Error('ドラフトのリセットに失敗しました');
-    }
+  async deleteByTournamentId(tournamentId: TournamentId): Promise<void> {
+    await prisma.draft.deleteMany({
+      where: { tournamentId: tournamentId.value },
+    });
   }
 
   /**

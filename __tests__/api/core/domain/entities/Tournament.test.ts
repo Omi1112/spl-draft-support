@@ -225,48 +225,10 @@ describe('Tournament Entity', () => {
       // in_progressステータスを設定
       const draftStatus = createTestDraftStatus('in_progress');
 
-      // canStartDraftがfalseを返すことをモック化
-      const mock = jest.spyOn(sut, 'canStartDraft').mockReturnValue(false);
-      mocks.push(mock);
-
       expectErrorWithMessage(
         () => sut.updateDraftStatus(draftStatus),
         'ドラフト開始条件を満たしていません'
       );
-    });
-  });
-
-  describe('canStartDraft', () => {
-    it('ドラフト開始条件を満たしていない場合はfalseを返すべき', () => {
-      const { sut } = createContext();
-      expect(sut.canStartDraft()).toBe(false);
-    });
-
-    it('ドラフト開始条件を満たした場合はtrueを返すべき', () => {
-      const { sut } = createContext();
-
-      // 4名の参加者を追加（1名はキャプテン）
-      const captain = createTestParticipant({ id: 'captain-id', isCaptain: true });
-      const participant1 = createTestParticipant({ id: 'participant-1' });
-      const participant2 = createTestParticipant({ id: 'participant-2' });
-      const participant3 = createTestParticipant({ id: 'participant-3' });
-
-      sut.addParticipant(captain);
-      sut.addParticipant(participant1);
-      sut.addParticipant(participant2);
-      sut.addParticipant(participant3);
-
-      // チームを追加
-      const team = createTestTeam({
-        id: 'team-id',
-        name: 'テストチーム',
-        captainId: 'captain-id',
-      });
-
-      sut.addTeam(team);
-
-      // ドラフト開始条件を満たす
-      expect(sut.canStartDraft()).toBe(true);
     });
   });
 });

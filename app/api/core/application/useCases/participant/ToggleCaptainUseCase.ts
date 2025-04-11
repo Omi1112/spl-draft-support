@@ -1,7 +1,8 @@
 // filepath: /workspace/app/api/core/application/useCases/participant/ToggleCaptainUseCase.ts
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
-import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
+import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
+import { TournamentParticipantDomainService } from '../../../domain/services/TournamentParticipantDomainService';
 
 interface ToggleCaptainInput {
   tournamentId: string;
@@ -18,46 +19,30 @@ interface ToggleCaptainOutput {
 export class ToggleCaptainUseCase {
   constructor(
     private tournamentRepository: TournamentRepository,
-    private tournamentParticipantRepository: TournamentParticipantRepository
+    private tournamentParticipantDomainService: TournamentParticipantDomainService
   ) {}
 
   async execute(input: ToggleCaptainInput): Promise<ToggleCaptainOutput> {
-    // トーナメントと参加者の存在チェック
-    const tournament = await this.tournamentRepository.findById(
-      new TournamentId(input.tournamentId)
-    );
+    // トーナメントの存在チェック
+    const tournamentId = new TournamentId(input.tournamentId);
+    const participantId = new ParticipantId(input.participantId);
+
+    const tournament = await this.tournamentRepository.findById(tournamentId);
     if (!tournament) {
       throw new Error(`トーナメントID ${input.tournamentId} が見つかりません`);
     }
 
-    // 現在の参加情報を取得
-    const currentParticipation =
-      await this.tournamentParticipantRepository.findByTournamentAndParticipant(
-        input.tournamentId,
-        input.participantId
-      );
-
-    if (!currentParticipation) {
-      throw new Error(
-        `参加者ID ${input.participantId} はトーナメント ${input.tournamentId} に存在しません`
-      );
-    }
-
-    // キャプテン設定を反転
-    const shouldBeCaptain = !currentParticipation.isCaptain;
-
-    // 更新
-    const updatedParticipation = await this.tournamentParticipantRepository.update(
-      input.tournamentId,
-      input.participantId,
-      { isCaptain: shouldBeCaptain }
+    // ドメインサービスを使用してキャプテン状態を切り替え
+    const updatedParticipation = await this.tournamentParticipantDomainService.toggleCaptainStatus(
+      tournamentId,
+      participantId
     );
 
     // 結果を返す
     return {
-      id: updatedParticipation.id,
-      tournamentId: updatedParticipation.tournamentId,
-      participantId: updatedParticipation.participantId,
+      id: updatedParticipation.id.value,
+      tournamentId: updatedParticipation.tournamentId.value,
+      participantId: updatedParticipation.participantId.value,
       isCaptain: updatedParticipation.isCaptain,
     };
   }
