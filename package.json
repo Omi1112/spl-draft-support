@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "WATCHPACK_POLLING=true next dev",
     "build": "next build",
-    "vercel-build": "prisma migrate deploy && next build",
+    "vercel-build": "next build && prisma migrate deploy",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
