@@ -5,7 +5,7 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     createdAt: String!
-    tournamentParticipant: [TournamentParticipant!]
+    tournamentParticipants: [TournamentParticipant!]
     teams: [Team!]
     draftStatus: DraftStatus
     captains: [Participant!]
