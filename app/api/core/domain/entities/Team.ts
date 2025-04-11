@@ -1,3 +1,4 @@
+// filepath: /workspace/app/api/core/domain/entities/Team.ts
 import { TeamId } from '../valueObjects/TeamId';
 import { ParticipantId } from '../valueObjects/ParticipantId';
 
@@ -6,12 +7,20 @@ export class Team {
   private _name: string;
   private _captainId: ParticipantId;
   private _memberIds: ParticipantId[];
+  private readonly _createdAt: Date;
 
-  constructor(id: TeamId, name: string, captainId: ParticipantId, memberIds: ParticipantId[] = []) {
+  constructor(
+    id: TeamId,
+    name: string,
+    captainId: ParticipantId,
+    memberIds: ParticipantId[] = [],
+    createdAt: Date
+  ) {
     this._id = id;
     this._name = name;
     this._captainId = captainId;
     this._memberIds = memberIds.length > 0 ? memberIds : [captainId];
+    this._createdAt = createdAt;
   }
 
   /**
@@ -21,7 +30,7 @@ export class Team {
    * @returns 新しいチームエンティティ
    */
   static create(name: string, captainId: ParticipantId): Team {
-    return new Team(TeamId.create(), name, captainId);
+    return new Team(TeamId.create(), name, captainId, [], new Date());
   }
 
   /**
@@ -30,14 +39,22 @@ export class Team {
    * @param name チーム名
    * @param captainId キャプテンID
    * @param memberIds メンバーID配列
+   * @param createdAt 作成日時
    * @returns 復元されたチームエンティティ
    */
-  static reconstruct(id: string, name: string, captainId: string, memberIds: string[] = []): Team {
+  static reconstruct(
+    id: string,
+    name: string,
+    captainId: string,
+    memberIds: string[] = [],
+    createdAt: string
+  ): Team {
     return new Team(
       TeamId.reconstruct(id),
       name,
       ParticipantId.reconstruct(captainId),
-      memberIds.map((mid) => ParticipantId.reconstruct(mid))
+      memberIds.map((mid) => ParticipantId.reconstruct(mid)),
+      new Date(createdAt)
     );
   }
 
@@ -48,6 +65,10 @@ export class Team {
 
   get name(): string {
     return this._name;
+  }
+
+  get createdAt(): Date {
+    return this._createdAt;
   }
 
   get captainId(): ParticipantId {

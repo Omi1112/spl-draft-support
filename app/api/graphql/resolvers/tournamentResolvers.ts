@@ -2,6 +2,7 @@ import { GetTournamentUseCase } from '../../core/application/useCases/tournament
 import { GetTournamentsUseCase } from '../../core/application/useCases/tournament/GetTournamentsUseCase';
 import { CreateTournamentUseCase } from '../../core/application/useCases/tournament/CreateTournamentUseCase';
 import { GetTournamentParticipantsByTournamentIdUseCase } from '../../core/application/useCases/tournament/GetTournamentParticipantsByTournamentIdUseCase';
+import { GetTeamsByTournamentIdUseCase } from '../../core/application/useCases/team/GetTeamsByTournamentIdUseCase';
 import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
 import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
 import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
@@ -27,6 +28,7 @@ const getTournamentParticipantsByTournamentIdUseCase =
     tournamentParticipantRepository,
     participantRepository
   );
+const getTeamsByTournamentIdUseCase = new GetTeamsByTournamentIdUseCase(teamRepository);
 
 // 型定義
 type Context = Record<string, unknown>;
@@ -214,11 +216,31 @@ export const tournamentResolvers = {
       }
     },
     teams: async (parent: TournamentType) => {
-      // すでに取得済みの場合はそれを返す
-      if (parent.teams) return parent.teams;
+      try {
+        // すでに取得済みの場合はそれを返す
+        if (parent.teams) return parent.teams;
 
-      // 必要に応じてここでチームを取得するロジックを追加
-      return [];
+        // ユースケースを使用してトーナメントIDに基づくチームを取得
+        const teams = await getTeamsByTournamentIdUseCase.execute(parent.id);
+
+        // チームが見つからない場合は空配列を返す
+        if (!teams || teams.length === 0) {
+          return [];
+        }
+
+        // GraphQLスキーマに合わせた形式に変換
+        return teams.map((team) => ({
+          id: extractId(team.id),
+          name: team.name,
+          captainId: extractId(team.captainId),
+          createdAt: extractDate(team.createdAt),
+        }));
+      } catch (error) {
+        console.error('チーム取得エラー:', error);
+        throw new Error(
+          `チームの取得に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
     },
     draftStatus: async (parent: TournamentType) => {
       // すでに取得済みの場合はそれを返す
