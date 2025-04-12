@@ -131,3 +131,40 @@ npm test -- __tests__/api/graphql/schema-resolver-consistency.test.ts
 7. クライアント側の実装・更新
 
 このフローに従うことで、各レイヤー間の整合性を確保し、保守性の高いアプリケーションを維持できます。
+
+
+
+# 開発tips
+
+## DB
+
+### DBの接続
+
+postgres のコンテナにアクセスして以下コマンドで接続
+
+```
+psql -p 5432 -U postgres -d postgres
+```
+
+### DBの初期化
+
+以下コマンドですべてのデータがリセットされます。（マイグレーションデータは残ります。）
+
+```
+DO $$ 
+DECLARE
+    r RECORD;
+BEGIN
+    -- 外部キー制約を一時的に無効化
+    EXECUTE 'SET CONSTRAINTS ALL DEFERRED';
+    
+    -- public スキーマ内の _prisma_migrations 以外のすべてのテーブルをトランケート
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename != '_prisma_migrations') 
+    LOOP
+        EXECUTE 'TRUNCATE TABLE "' || r.tablename || '" CASCADE';
+    END LOOP;
+    
+    -- 制約を再度有効化
+    EXECUTE 'SET CONSTRAINTS ALL IMMEDIATE';
+END $$;
+```
