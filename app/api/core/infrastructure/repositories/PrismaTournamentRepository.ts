@@ -20,7 +20,7 @@ export class PrismaTournamentRepository implements TournamentRepository {
    * @returns ドメインエンティティ
    */
   private mapToDomainEntity(tournamentData: any): Tournament {
-  return Tournament.reconstruct(
+    return Tournament.reconstruct(
       tournamentData.id,
       tournamentData.name,
       tournamentData.createdAt,
