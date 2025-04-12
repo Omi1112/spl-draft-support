@@ -1,5 +1,12 @@
 {
   "remote.extensionKind": {
     "ms-azuretools.vscodepm-docker": ["ui"]
-  }
+  },
+  "chat.promptFiles": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["javascript", "typescript"],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
