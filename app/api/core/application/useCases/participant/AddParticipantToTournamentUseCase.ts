@@ -1,12 +1,16 @@
 import { Participant } from '../../../domain/entities/Participant';
+import { TournamentParticipant } from '../../../domain/entities/TournamentParticipant';
 import { ParticipantRepository } from '../../../domain/repositories/ParticipantRepository';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
+import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
 import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 
 export interface AddParticipantDTO {
   tournamentId: string;
   name: string;
+  weapon: string; // 武器を追加
+  xp: number; // XPを追加
   isCaptain: boolean;
 }
 
@@ -14,7 +18,6 @@ export interface AddParticipantDTO {
 interface ParticipantDTO {
   id: string;
   name: string;
-  isCaptain: boolean;
   tournamentId: string;
   participantId: string;
   createdAt: string;
@@ -23,7 +26,8 @@ interface ParticipantDTO {
 export class AddParticipantToTournamentUseCase {
   constructor(
     private tournamentRepository: TournamentRepository,
-    private participantRepository: ParticipantRepository
+    private participantRepository: ParticipantRepository,
+    private tournamentParticipantRepository: TournamentParticipantRepository
   ) {}
 
   async execute(input: AddParticipantDTO): Promise<ParticipantDTO> {
@@ -50,24 +54,29 @@ export class AddParticipantToTournamentUseCase {
     const participant = new Participant(
       participantId,
       input.name.trim(),
-      'default-weapon', // デフォルト値を設定
-      0, // デフォルト経験値
-      new Date(),
-      input.isCaptain
+      input.weapon || 'default-weapon', // クライアントから送信されたweaponを使用、なければデフォルト値
+      input.xp || 0, // クライアントから送信されたxpを使用、なければデフォルト値
+      new Date()
     );
 
     // 参加者データを保存
     await this.participantRepository.save(participant);
 
-    // トーナメントに参加者IDを追加
-    tournament.addParticipantId(participantId);
-    await this.tournamentRepository.save(tournament);
+    // TournamentParticipantエンティティを作成して保存する
+    // コンストラクタに必要なパラメータを確認
+    const tournamentParticipant = TournamentParticipant.create(
+      tournamentId,
+      participantId,
+      input.isCaptain
+    );
+
+    // TournamentParticipantRepositoryを使ってデータを保存
+    await this.tournamentParticipantRepository.save(tournamentParticipant);
 
     // DTOを返却
     return {
       id: participant.id.value,
       name: participant.name,
-      isCaptain: participant.isCaptain,
       tournamentId: tournament.id.value,
       participantId: participant.id.value,
       createdAt: participant.createdAt.toISOString(),

@@ -111,6 +111,9 @@ export const typeDefs = gql`
   }
 
   type TournamentParticipant {
+    id: ID!
+    tournamentId: ID!
+    participantId: ID!
     Tournament: Tournament!
     Participant: Participant!
     isCaptain: Boolean!

@@ -189,6 +189,9 @@ export const tournamentResolvers = {
             if (!tp.participant) return null;
 
             return {
+              id: tp.id,
+              tournamentId: tp.tournamentId,
+              participantId: tp.participantId,
               Tournament: {
                 id: tp.tournamentId,
                 name: parent.name,

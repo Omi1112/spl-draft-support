@@ -1,4 +1,3 @@
-// filepath: /workspace/app/api/graphql/resolvers/tournament/participantResolvers.ts
 import { prisma } from '../../core/infrastructure/persistence/prisma/client';
 import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
 import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
@@ -22,7 +21,8 @@ const tournamentParticipantDomainService = new TournamentParticipantDomainServic
 // ユースケースの初期化
 const addParticipantToTournamentUseCase = new AddParticipantToTournamentUseCase(
   tournamentRepository,
-  participantRepository
+  participantRepository,
+  tournamentParticipantRepository
 );
 const toggleCaptainUseCase = new ToggleCaptainUseCase(
   tournamentRepository,
@@ -215,6 +215,46 @@ export const participantResolvers = {
         };
       } catch (error) {
         return handleError(error, 'キャプテンの設定に失敗しました');
+      }
+    },
+
+    // 参加者をトーナメントに追加するミューテーション
+    addParticipantToTournament: async (
+      _: Context,
+      {
+        input,
+      }: {
+        input: {
+          tournamentId: string;
+          participant: {
+            name: string;
+            weapon: string;
+            xp: number;
+            isCaptain?: boolean;
+          };
+        };
+      }
+    ) => {
+      try {
+        // ユースケースを実行して参加者を追加
+        const result = await addParticipantToTournamentUseCase.execute({
+          tournamentId: input.tournamentId,
+          name: input.participant.name,
+          weapon: input.participant.weapon,
+          xp: input.participant.xp,
+          isCaptain: input.participant.isCaptain || false,
+        });
+
+        // 返り値はGraphQLスキーマに合わせた形式にする
+        return {
+          id: result.id,
+          tournamentId: result.tournamentId,
+          participantId: result.participantId,
+          createdAt: result.createdAt,
+          isCaptain: result.isCaptain,
+        };
+      } catch (error) {
+        return handleError(error, 'トーナメントへの参加者追加に失敗しました');
       }
     },
   },
