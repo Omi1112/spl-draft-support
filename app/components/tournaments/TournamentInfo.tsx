@@ -16,7 +16,7 @@ export function TournamentInfo({ tournament }: TournamentInfoProps) {
       </h2>
       <p className="text-gray-600 dark:text-gray-300 mb-2">大会ID: {tournament.id}</p>
       <p className="text-gray-600 dark:text-gray-300">
-        参加者数: {tournament.participants.length}人
+        参加者数: {tournament.tournamentParticipants?.length || 0}人
       </p>
     </div>
   );

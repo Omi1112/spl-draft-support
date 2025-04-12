@@ -20,7 +20,7 @@ export class PrismaTournamentRepository implements TournamentRepository {
    * @returns ドメインエンティティ
    */
   private mapToDomainEntity(tournamentData: any): Tournament {
-    return Tournament.reconstruct(
+  return Tournament.reconstruct(
       tournamentData.id,
       tournamentData.name,
       tournamentData.createdAt,
@@ -35,6 +35,9 @@ export class PrismaTournamentRepository implements TournamentRepository {
   async findAll(): Promise<Tournament[]> {
     const tournaments = await this.prismaClient.tournament.findMany({
       orderBy: { createdAt: 'desc' },
+      include: {
+        draftStatus: true,
+      },
     });
 
     return tournaments.map((t) => this.mapToDomainEntity(t));
