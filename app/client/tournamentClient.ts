@@ -10,13 +10,16 @@ export async function fetchTournament(id: string): Promise<Tournament> {
         id
         name
         createdAt
-        participants {
-          id
-          name
-          weapon
-          xp
-          createdAt
+        tournamentParticipants {
+          Participant {
+            id
+            name
+            weapon
+            xp
+            createdAt
+          }
           isCaptain
+          createdAt
         }
         captains {
           id
@@ -61,13 +64,15 @@ export async function fetchTournament(id: string): Promise<Tournament> {
 
   // デバッグログを追加
   console.log('GraphQL Response:', JSON.stringify(result, null, 2));
-  if (result.data && result.data.tournament) {
+
+  // tournamentParticipantsのデータを確認
+  if (result.data?.tournament?.tournamentParticipants) {
     console.log(
-      'Participants with isCaptain:',
-      result.data.tournament.participants.map((p: Participant) => ({
-        id: p.id,
-        name: p.name,
-        isCaptain: p.isCaptain,
+      'Tournament participants:',
+      result.data.tournament.tournamentParticipants.map((tp: any) => ({
+        participantId: tp.Participant.id,
+        participantName: tp.Participant.name,
+        isCaptain: tp.isCaptain,
       }))
     );
   }

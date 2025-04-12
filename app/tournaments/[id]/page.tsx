@@ -90,7 +90,7 @@ export default function TournamentDetails() {
       {/* 参加者一覧セクション */}
       <ParticipantList
         tournamentId={tournament.id}
-        participants={tournament.participants}
+        tournamentParticipants={tournament.tournamentParticipants}
         onCaptainToggle={handleCaptainToggle}
         onAddParticipant={() => setShowModal(true)}
         processingCaptainId={isProcessingCaptain}

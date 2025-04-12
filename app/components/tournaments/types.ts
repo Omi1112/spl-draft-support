@@ -6,7 +6,7 @@ export interface Tournament {
   id: string;
   name: string;
   createdAt: string;
-  participants: Participant[];
+  tournamentParticipants: TournamentParticipantWithParticipant[];
   captains?: Participant[];
   captain?: Participant;
   teams?: Team[];
@@ -44,6 +44,14 @@ export interface TournamentParticipant {
   createdAt: string;
   isCaptain: boolean;
   teamId?: string;
+}
+
+// GraphQLスキーマに合わせたトーナメント参加者データ型定義
+export interface TournamentParticipantWithParticipant {
+  Tournament: Tournament;
+  Participant: Participant;
+  isCaptain: boolean;
+  createdAt: string;
 }
 
 // ドラフト指名データの型定義

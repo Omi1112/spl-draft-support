@@ -7,12 +7,8 @@ export class CreateTournamentUseCase {
   constructor(private tournamentRepository: TournamentRepository) {}
 
   async execute(dto: CreateTournamentDTO): Promise<TournamentDTO> {
-    // 一意のIDを生成 (実際の実装ではUUIDライブラリなどを使用)
-    const id = `tournament-${Date.now()}`;
-    const tournamentId = new TournamentId(id);
-
     // トーナメントドメインエンティティの作成
-    const tournament = new Tournament(tournamentId, dto.name, new Date(), [], []);
+    const tournament = Tournament.create(dto.name);
 
     // リポジトリを利用して保存
     const savedTournament = await this.tournamentRepository.save(tournament);

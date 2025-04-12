@@ -3,11 +3,11 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
-import { Participant } from './types';
+import { Participant, TournamentParticipantWithParticipant } from './types';
 
 interface ParticipantListProps {
   tournamentId: string;
-  participants: Participant[];
+  tournamentParticipants: TournamentParticipantWithParticipant[];
   onCaptainToggle: (participantId: string) => void;
   onAddParticipant: () => void;
   processingCaptainId?: string | null; // 処理中の参加者IDを追加
@@ -15,18 +15,24 @@ interface ParticipantListProps {
 
 export function ParticipantList({
   tournamentId,
-  participants,
+  tournamentParticipants,
   onCaptainToggle,
   onAddParticipant,
   processingCaptainId,
 }: ParticipantListProps) {
   // ID順にソートされた参加者リストを生成
   const sortedParticipants = useMemo(() => {
+    // tournamentParticipantsからParticipantデータを抽出し、isCaptainフラグを追加
+    const participants = tournamentParticipants.map((tp) => ({
+      ...tp.Participant,
+      isCaptain: tp.isCaptain,
+    }));
+
     return [...participants].sort((a, b) => {
       // ID文字列を比較して昇順にソート
       return a.id.localeCompare(b.id);
     });
-  }, [participants]);
+  }, [tournamentParticipants]);
 
   return (
     <div className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6 mb-8">
