@@ -3,9 +3,8 @@
 import { Tournament } from '../../../components/tournaments/types';
 
 /**
- * キャプテン情報をもとに参加者データに isCaptain フラグを追加
- * APIからのレスポンス構造に合わせて適切に処理
- * すでにisCaptain値が設定されている場合はそれを尊重する
+ * キャプテン情報をもとにトーナメント参加者データを処理
+ * GraphQLスキーマに合わせて適切に処理
  */
 export function addCaptainFlagsToParticipants(tournament: Tournament): Tournament {
   // APIの構造にあわせてキャプテン情報を取得
@@ -22,35 +21,29 @@ export function addCaptainFlagsToParticipants(tournament: Tournament): Tournamen
     }) || [];
 
   console.log('キャプテン設定: ', captainParticipantIds);
-  console.log(
-    '現在の参加者isCaptain状態: ',
-    tournament.participants.map((p) => ({
-      id: p.id,
-      name: p.name,
-      isCaptain: p.isCaptain,
-    }))
+
+  // tournamentParticipantsが存在する場合はそのまま使用する
+  // GraphQLスキーマに合わせた形式になっているはず
+  if (tournament.tournamentParticipants) {
+    console.log(
+      'トーナメント参加者データ: ',
+      tournament.tournamentParticipants.map((tp) => ({
+        participantId: tp.Participant.id,
+        participantName: tp.Participant.name,
+        isCaptain: tp.isCaptain,
+      }))
+    );
+
+    return tournament;
+  }
+
+  // 互換性のために残しているが、tournamentParticipantsが正しく実装されていれば
+  // このパスは通らないはず
+  console.warn(
+    '従来のparticipantsフィールドが使用されています。tournamentParticipantsへの移行を検討してください。'
   );
 
-  const participantsWithCaptainFlag = tournament.participants.map((p) => ({
-    ...p,
-    // GraphQLから明示的にisCaptain: trueで返ってきた場合はそれを優先
-    // そうでない場合はcaptainParticipantIdsに基づいて判定
-    isCaptain: p.isCaptain === true ? true : captainParticipantIds.includes(p.id),
-  }));
-
-  console.log(
-    '更新後の参加者isCaptain状態: ',
-    participantsWithCaptainFlag.map((p) => ({
-      id: p.id,
-      name: p.name,
-      isCaptain: p.isCaptain,
-    }))
-  );
-
-  return {
-    ...tournament,
-    participants: participantsWithCaptainFlag,
-  };
+  return tournament;
 }
 
 /**
