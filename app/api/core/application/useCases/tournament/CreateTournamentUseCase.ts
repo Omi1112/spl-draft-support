@@ -1,6 +1,5 @@
 import { Tournament } from '../../../domain/entities/Tournament';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
-import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 import { CreateTournamentDTO, TournamentDTO } from '../../interfaces/DTOs';
 
 export class CreateTournamentUseCase {

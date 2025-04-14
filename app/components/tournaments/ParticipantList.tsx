@@ -3,7 +3,7 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
-import { Participant, TournamentParticipantWithParticipant } from './types';
+import { TournamentParticipantWithParticipant } from './types';
 
 interface ParticipantListProps {
   tournamentId: string;

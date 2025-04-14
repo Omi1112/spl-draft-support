@@ -1,6 +1,5 @@
 import { ParticipantRepository } from '../../../domain/repositories/ParticipantRepository';
 import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
-import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 
 // 出力型定義

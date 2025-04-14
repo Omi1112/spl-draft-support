@@ -1,8 +1,5 @@
 import { DraftStatus } from '../valueObjects/DraftStatus';
 import { TournamentId } from '../valueObjects/TournamentId';
-import { ParticipantId } from '../valueObjects/ParticipantId';
-import { TeamId } from '../valueObjects/TeamId';
-import { Draft } from './Draft';
 
 /**
  * トーナメントエンティティ

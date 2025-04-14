@@ -7,7 +7,6 @@ import { ToggleCaptainUseCase } from '../../core/application/useCases/participan
 import { ParticipantId } from '../../core/domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../core/domain/valueObjects/TournamentId';
 import { TournamentParticipantDomainService } from '../../core/domain/services/TournamentParticipantDomainService';
-import { ParticipantDTO } from '../../core/application/interfaces/DTOs';
 
 // リポジトリの初期化
 const participantRepository = new PrismaParticipantRepository();

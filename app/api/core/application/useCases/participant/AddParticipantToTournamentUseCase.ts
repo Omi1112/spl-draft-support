@@ -3,9 +3,7 @@ import { TournamentParticipant } from '../../../domain/entities/TournamentPartic
 import { ParticipantRepository } from '../../../domain/repositories/ParticipantRepository';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
 import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
-import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
-import { ParticipantDTO } from '../../interfaces/DTOs';
 
 export interface AddParticipantDTO {
   tournamentId: string;

@@ -4,7 +4,6 @@ import { TournamentParticipant } from '../../domain/entities/TournamentParticipa
 import { TournamentParticipantId } from '../../domain/valueObjects/TournamentParticipantId';
 import { TournamentId } from '../../domain/valueObjects/TournamentId';
 import { ParticipantId } from '../../domain/valueObjects/ParticipantId';
-import { TeamId } from '../../domain/valueObjects/TeamId';
 import { prisma } from '../persistence/prisma/client';
 
 export class PrismaTournamentParticipantRepository implements TournamentParticipantRepository {

@@ -4,7 +4,7 @@ import { DraftId } from '../../domain/valueObjects/DraftId';
 import { ParticipantId } from '../../domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../domain/valueObjects/TournamentId';
 import { prisma } from '../persistence/prisma/client';
-import { Draft as PrismaDraft, Participant, Prisma } from '@prisma/client';
+import { Draft as PrismaDraft, Participant } from '@prisma/client';
 
 /**
  * ドラフトリポジトリのPrisma実装

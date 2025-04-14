@@ -1,8 +1,6 @@
 import { Tournament } from '../../domain/entities/Tournament';
 import { TournamentRepository } from '../../domain/repositories/TournamentRepository';
 import { DraftStatus } from '../../domain/valueObjects/DraftStatus';
-import { ParticipantId } from '../../domain/valueObjects/ParticipantId';
-import { TeamId } from '../../domain/valueObjects/TeamId';
 import { TournamentId } from '../../domain/valueObjects/TournamentId';
 import { prisma } from '../persistence/prisma/client';
 import { PrismaClient } from '@prisma/client';

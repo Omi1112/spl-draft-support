@@ -1,6 +1,6 @@
 // トーナメント関連のGraphQLクライアント関数
 
-import { Tournament, TournamentParticipant, Participant } from '../components/tournaments/types';
+import { Tournament, TournamentParticipant } from '../components/tournaments/types';
 
 // GraphQLクエリを実行する関数
 export async function fetchTournament(id: string): Promise<Tournament> {

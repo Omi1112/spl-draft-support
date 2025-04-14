@@ -1,7 +1,6 @@
 import { Participant } from '../../domain/entities/Participant';
 import { ParticipantRepository } from '../../domain/repositories/ParticipantRepository';
 import { ParticipantId } from '../../domain/valueObjects/ParticipantId';
-import { TeamId } from '../../domain/valueObjects/TeamId';
 import { TournamentId } from '../../domain/valueObjects/TournamentId';
 import { prisma } from '../persistence/prisma/client';
 
