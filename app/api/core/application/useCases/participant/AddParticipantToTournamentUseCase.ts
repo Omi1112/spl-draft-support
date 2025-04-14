@@ -5,6 +5,7 @@ import { TournamentRepository } from '../../../domain/repositories/TournamentRep
 import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
 import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
+import { ParticipantDTO } from '../../interfaces/DTOs';
 
 export interface AddParticipantDTO {
   tournamentId: string;
@@ -14,13 +15,14 @@ export interface AddParticipantDTO {
   isCaptain: boolean;
 }
 
-// 出力DTOの型定義
-interface ParticipantDTO {
+// 出力用のDTOインターフェース
+interface OutputParticipantDTO {
   id: string;
   name: string;
   tournamentId: string;
   participantId: string;
   createdAt: string;
+  isCaptain: boolean;
 }
 
 export class AddParticipantToTournamentUseCase {
@@ -30,7 +32,7 @@ export class AddParticipantToTournamentUseCase {
     private tournamentParticipantRepository: TournamentParticipantRepository
   ) {}
 
-  async execute(input: AddParticipantDTO): Promise<ParticipantDTO> {
+  async execute(input: AddParticipantDTO): Promise<OutputParticipantDTO> {
     // 入力値のバリデーション
     if (!input.name || input.name.trim() === '') {
       throw new Error('参加者名は必須です');
@@ -81,6 +83,7 @@ export class AddParticipantToTournamentUseCase {
       tournamentId: tournament.id.value,
       participantId: participant.id.value,
       createdAt: participant.createdAt.toISOString(),
+      isCaptain: input.isCaptain || false,
     };
   }
 }

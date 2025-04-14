@@ -185,7 +185,7 @@ export const tournamentResolvers = {
 
         // GraphQLスキーマに合わせた形式に変換
         return tournamentParticipants
-          .map((tp) => {
+          .map((tp: any) => {
             if (!tp.participant) return null;
 
             return {

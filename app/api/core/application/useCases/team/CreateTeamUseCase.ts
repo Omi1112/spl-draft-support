@@ -39,7 +39,7 @@ export class CreateTeamUseCase {
     const savedTeam = await this.teamRepository.save(team);
 
     // キャプテンにチームIDを設定
-    captain.assignTeam(team.id);
+    captain.assignToTeam(team.id);
     await this.participantRepository.save(captain);
 
     // DTOに変換して返却

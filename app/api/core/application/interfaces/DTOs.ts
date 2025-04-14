@@ -24,10 +24,13 @@ export interface ParticipantDTO {
 }
 
 export interface TournamentParticipantDTO {
+  id: string;
   tournament: TournamentDTO;
   participant: ParticipantDTO;
   isCaptain: boolean;
   createdAt: string;
+  tournamentId?: string;
+  participantId?: string;
 }
 
 export interface CreateParticipantDTO {

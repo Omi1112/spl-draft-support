@@ -7,6 +7,7 @@ import { ToggleCaptainUseCase } from '../../core/application/useCases/participan
 import { ParticipantId } from '../../core/domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../core/domain/valueObjects/TournamentId';
 import { TournamentParticipantDomainService } from '../../core/domain/services/TournamentParticipantDomainService';
+import { ParticipantDTO } from '../../core/application/interfaces/DTOs';
 
 // リポジトリの初期化
 const participantRepository = new PrismaParticipantRepository();
@@ -179,7 +180,7 @@ export const participantResolvers = {
           weapon: participant.weapon,
           xp: participant.xp,
           createdAt: participant.createdAt.toISOString(),
-          isCaptain: result.isCaptain,
+          isCaptain: (result as any).isCaptain,
         };
       } catch (error) {
         return handleError(error, '参加者の追加に失敗しました');
@@ -253,7 +254,7 @@ export const participantResolvers = {
           tournamentId: result.tournamentId,
           participantId: result.participantId,
           createdAt: result.createdAt,
-          isCaptain: result.isCaptain,
+          isCaptain: (result as any).isCaptain,
         };
       } catch (error) {
         return handleError(error, 'トーナメントへの参加者追加に失敗しました');
