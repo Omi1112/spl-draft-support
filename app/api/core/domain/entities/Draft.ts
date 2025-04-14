@@ -8,15 +8,15 @@ import { TournamentId } from '../valueObjects/TournamentId';
  */
 export class Draft {
   private readonly _id: DraftId;
-  private readonly _tournamentId: TournamentId;
-  private readonly _captainId: ParticipantId;
-  private readonly _participantId: ParticipantId;
-  private readonly _round: number;
-  private readonly _turn: number;
-  private readonly _status: string;
-  private readonly _createdAt: Date;
+  private _tournamentId: TournamentId;
+  private _captainId: ParticipantId;
+  private _participantId: ParticipantId;
+  private _round: number;
+  private _turn: number;
+  private _status: string;
+  private _createdAt: Date;
 
-  constructor(
+  private constructor(
     id: DraftId,
     tournamentId: TournamentId,
     captainId: ParticipantId,

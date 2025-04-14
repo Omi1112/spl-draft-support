@@ -2,15 +2,19 @@ import { TeamId } from '../valueObjects/TeamId';
 import { ParticipantId } from '../valueObjects/ParticipantId';
 import { TournamentId } from '../valueObjects/TournamentId';
 
+/**
+ * チームエンティティ
+ * キャプテンと複数のメンバーで構成されるチームを表します
+ */
 export class Team {
   private readonly _id: TeamId;
   private _name: string;
   private _captainId: ParticipantId;
   private _memberIds: ParticipantId[];
-  private readonly _tournamentId: TournamentId;
-  private readonly _createdAt: Date;
+  private _tournamentId: TournamentId;
+  private _createdAt: Date;
 
-  constructor(
+  private constructor(
     id: TeamId,
     name: string,
     captainId: ParticipantId,
@@ -34,7 +38,8 @@ export class Team {
    * @returns 新しいチームエンティティ
    */
   static create(name: string, captainId: ParticipantId, tournamentId: TournamentId): Team {
-    return new Team(TeamId.create(), name, captainId, tournamentId, [], new Date());
+    const memberIds = [captainId]; // キャプテンは初期メンバーとして追加
+    return new Team(TeamId.create(), name, captainId, tournamentId, memberIds, new Date());
   }
 
   /**
@@ -83,19 +88,27 @@ export class Team {
   }
 
   get memberIds(): ParticipantId[] {
-    return [...this._memberIds];
+    return [...this._memberIds]; // 配列のコピーを返して不変性を保つ
   }
 
   get tournamentId(): TournamentId {
     return this._tournamentId;
   }
 
+  /**
+   * チームにメンバーを追加する
+   * @param participantId 参加者ID
+   */
   addMember(participantId: ParticipantId): void {
     if (!this._memberIds.some((id) => id.equals(participantId))) {
       this._memberIds.push(participantId);
     }
   }
 
+  /**
+   * チームからメンバーを削除する
+   * @param participantId 参加者ID
+   */
   removeMember(participantId: ParticipantId): void {
     // キャプテンは削除できない
     if (this._captainId.equals(participantId)) {
@@ -104,6 +117,10 @@ export class Team {
     this._memberIds = this._memberIds.filter((id) => !id.equals(participantId));
   }
 
+  /**
+   * チームのキャプテンを変更する
+   * @param newCaptainId 新しいキャプテンID
+   */
   changeCaptain(newCaptainId: ParticipantId): void {
     // 新しいキャプテンがチームにいなければ追加
     if (!this._memberIds.some((id) => id.equals(newCaptainId))) {
@@ -112,6 +129,11 @@ export class Team {
     this._captainId = newCaptainId;
   }
 
+  /**
+   * 指定した参加者がチームのメンバーかどうか確認する
+   * @param participantId 参加者ID
+   * @returns メンバーの場合はtrue
+   */
   isMember(participantId: ParticipantId): boolean {
     return this._memberIds.some((id) => id.equals(participantId));
   }

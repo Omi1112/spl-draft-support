@@ -15,11 +15,21 @@
 
 - Entity
 
+  - constructorはprivateメソッドとして定義して、staticなfactoryメソッドから呼び出す形にしてください。
   - 関係するEntityはEntityのIDだけ保有してObjectは保有しない。
   - static createメソッドを定義する。
     　- createメソッドは、Entityを生成するためのメソッドでありIDの初期値割り当てなどを
   - static reconstructメソッドを定義する。
     　- reconstructメソッドは、Entityを復元するためのメソッドであり基本的にRepositoryからデータを取得する時にオブジェクト化する時に利用する。
+  - 状態変更について：
+    　- Entityの状態変更は原則として「直接変更方式」を採用する（基本的にはreadonlyは使用しない）
+    　- 状態変更メソッドは直接プロパティ値を変更し、voidを返す
+    　- 新しいインスタンスを返す方式（イミュータブル設計）は採用しない
+  - プロパティ定義時の注意点：
+    　- ID（エンティティの識別子）プロパティのみ例外的にreadonlyを使用することを許可する
+    　- ID以外のプロパティにはreadonlyを使用しないでください
+    　- 変更可能なプロパティはすべてmutableとして定義する
+    　- ID以外で値の変更が必要ない場合でも、統一性のためにreadonlyは使用せず、アクセス制御のみでカプセル化する
 
 - ValueObject
 

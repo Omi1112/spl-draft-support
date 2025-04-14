@@ -50,8 +50,7 @@ export class AddParticipantToTournamentUseCase {
     }
 
     // 参加者エンティティを作成
-    const participantId = new ParticipantId(`participant-${Date.now()}`);
-    const participant = new Participant(
+    const participant = Participant.create(
       participantId,
       input.name.trim(),
       input.weapon || 'default-weapon', // クライアントから送信されたweaponを使用、なければデフォルト値

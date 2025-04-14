@@ -8,14 +8,14 @@ import { TeamId } from '../valueObjects/TeamId';
  * トーナメントと参加者の関連を表すエンティティ
  */
 export class TournamentParticipant {
-  private _id: TournamentParticipantId;
+  private readonly _id: TournamentParticipantId;
   private _tournamentId: TournamentId;
   private _participantId: ParticipantId;
   private _isCaptain: boolean;
   private _teamId: TeamId | null;
   private _createdAt: Date;
 
-  constructor(
+  private constructor(
     id: TournamentParticipantId,
     tournamentId: TournamentId,
     participantId: ParticipantId,
@@ -108,7 +108,7 @@ export class TournamentParticipant {
   }
 
   /**
-   * キャプテンフラグをトグルする。
+   * キャプテンフラグをトグルする
    */
   toggleCaptainFlag(): void {
     this._isCaptain = !this._isCaptain;
