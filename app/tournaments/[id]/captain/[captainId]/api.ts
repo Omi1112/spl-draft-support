@@ -110,14 +110,10 @@ export async function fetchTournamentData(
 }
 
 // ドラフトを開始する関数
-export async function startDraft(tournamentId: string) {
+export async function startDraft(tournamentId: string): Promise<boolean> {
   const mutation = `
     mutation StartDraft($input: StartDraftInput!) {
-      startDraft(input: $input) {
-        id
-        name
-        captainId
-      }
+      startDraft(input: $input)
     }
   `;
 
@@ -142,6 +138,7 @@ export async function startDraft(tournamentId: string) {
     throw new Error(result.errors[0]?.message || 'ドラフト開始中にエラーが発生しました');
   }
 
+  // スキーマに合わせて boolean を返すように修正
   return result.data.startDraft;
 }
 
