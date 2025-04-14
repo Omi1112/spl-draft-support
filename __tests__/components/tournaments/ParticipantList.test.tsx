@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { ParticipantList } from '../../../app/components/tournaments/ParticipantList';
-import { Participant } from '../../../app/components/tournaments/types';
+import {
+  Participant,
+  TournamentParticipantWithParticipant,
+  Tournament,
+} from '../../../app/components/tournaments/types';
 
 // モックを使用してNext.jsのLinkコンポーネントを置き換え
 jest.mock('next/link', () => {
@@ -11,6 +15,9 @@ jest.mock('next/link', () => {
 });
 
 describe('ParticipantList', () => {
+  // モック用のトーナメントデータを作成（循環参照を避けるため部分的に定義）
+  const mockTournament = {} as Tournament;
+
   const mockParticipants: Participant[] = [
     {
       id: 'participant-1',
@@ -30,6 +37,16 @@ describe('ParticipantList', () => {
     },
   ];
 
+  // tournamentParticipantsの形式に変換
+  const mockTournamentParticipants: TournamentParticipantWithParticipant[] = mockParticipants.map(
+    (participant) => ({
+      Tournament: mockTournament,
+      Participant: participant,
+      isCaptain: participant.isCaptain || false,
+      createdAt: participant.createdAt,
+    })
+  );
+
   const mockTournamentId = 'test-tournament-123';
   const mockOnCaptainToggle = jest.fn();
   const mockOnAddParticipant = jest.fn();
@@ -44,7 +61,7 @@ describe('ParticipantList', () => {
     render(
       <ParticipantList
         tournamentId={mockTournamentId}
-        participants={mockParticipants}
+        tournamentParticipants={mockTournamentParticipants}
         onCaptainToggle={mockOnCaptainToggle}
         onAddParticipant={mockOnAddParticipant}
       />
@@ -80,7 +97,7 @@ describe('ParticipantList', () => {
     render(
       <ParticipantList
         tournamentId={mockTournamentId}
-        participants={[]}
+        tournamentParticipants={[]}
         onCaptainToggle={mockOnCaptainToggle}
         onAddParticipant={mockOnAddParticipant}
       />
@@ -93,7 +110,7 @@ describe('ParticipantList', () => {
     render(
       <ParticipantList
         tournamentId={mockTournamentId}
-        participants={mockParticipants}
+        tournamentParticipants={mockTournamentParticipants}
         onCaptainToggle={mockOnCaptainToggle}
         onAddParticipant={mockOnAddParticipant}
       />
@@ -118,7 +135,7 @@ describe('ParticipantList', () => {
     render(
       <ParticipantList
         tournamentId={mockTournamentId}
-        participants={mockParticipants}
+        tournamentParticipants={mockTournamentParticipants}
         onCaptainToggle={mockOnCaptainToggle}
         onAddParticipant={mockOnAddParticipant}
       />
@@ -134,7 +151,7 @@ describe('ParticipantList', () => {
     render(
       <ParticipantList
         tournamentId={mockTournamentId}
-        participants={mockParticipants}
+        tournamentParticipants={mockTournamentParticipants}
         onCaptainToggle={mockOnCaptainToggle}
         onAddParticipant={mockOnAddParticipant}
       />

@@ -151,5 +151,7 @@ export const typeDefs = gql`
     resetDraft(input: ResetDraftInput!): Boolean!
     # ドラフト開始ミューテーションを追加
     startDraft(input: StartDraftInput!): Boolean!
+    # ドラフト開始ミューテーションを追加
+    startDraft(input: StartDraftInput!): Boolean!
   }
 `;

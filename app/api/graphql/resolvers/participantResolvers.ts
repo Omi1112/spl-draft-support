@@ -159,6 +159,8 @@ export const participantResolvers = {
         const result = await addParticipantToTournamentUseCase.execute({
           tournamentId: input.tournamentId,
           name: input.name,
+          weapon: input.weapon,
+          xp: input.xp,
           isCaptain: input.isCaptain || false,
         });
 

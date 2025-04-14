@@ -45,28 +45,30 @@ export class AddParticipantToTournamentUseCase {
     }
 
     // ドラフト中の場合は参加者を追加できない
-    if (tournament.draftStatus?.status === 'in_progress') {
+    if (tournament.draftStatus?.isActive) {
       throw new Error('ドラフト進行中は参加者を追加できません');
     }
 
     // 参加者エンティティを作成
     const participant = Participant.create(
-      participantId,
       input.name.trim(),
       input.weapon || 'default-weapon', // クライアントから送信されたweaponを使用、なければデフォルト値
       input.xp || 0, // クライアントから送信されたxpを使用、なければデフォルト値
-      new Date()
+      input.isCaptain || false
     );
 
     // 参加者データを保存
     await this.participantRepository.save(participant);
 
+    // トーナメントに参加者を追加
+    tournament.addParticipant(participant);
+    await this.tournamentRepository.save(tournament);
+
     // TournamentParticipantエンティティを作成して保存する
-    // コンストラクタに必要なパラメータを確認
     const tournamentParticipant = TournamentParticipant.create(
       tournamentId,
-      participantId,
-      input.isCaptain
+      participant.id,
+      input.isCaptain || false
     );
 
     // TournamentParticipantRepositoryを使ってデータを保存

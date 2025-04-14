@@ -15,7 +15,7 @@ export class UpdateDraftStatusUseCase {
     }
 
     // ドラフトステータスを更新
-    const newDraftStatus = new DraftStatus(dto.round, dto.turn, dto.status);
+    const newDraftStatus = new DraftStatus(dto.round, dto.turn, dto.isActive);
     tournament.updateDraftStatus(newDraftStatus);
 
     // トーナメントを保存
@@ -25,7 +25,7 @@ export class UpdateDraftStatusUseCase {
     return {
       round: newDraftStatus.round,
       turn: newDraftStatus.turn,
-      status: newDraftStatus.status,
+      isActive: newDraftStatus.isActive,
     };
   }
 }

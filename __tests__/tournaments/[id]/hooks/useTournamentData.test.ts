@@ -42,19 +42,29 @@ describe('useTournamentData', () => {
       id: '1',
       name: 'テストトーナメント',
       createdAt: '2025-04-07T00:00:00.000Z',
-      participants: [
+      tournamentParticipants: [
         {
-          id: 'p1',
-          name: 'テスト参加者1',
-          weapon: '剣',
-          xp: 100,
+          Tournament: {} as Tournament, // 循環参照を避けるために空オブジェクト
+          Participant: {
+            id: 'p1',
+            name: 'テスト参加者1',
+            weapon: '剣',
+            xp: 100,
+            createdAt: '2025-04-07T00:00:00.000Z',
+          },
+          isCaptain: false,
           createdAt: '2025-04-07T00:00:00.000Z',
         },
         {
-          id: 'p2',
-          name: 'テスト参加者2',
-          weapon: '槍',
-          xp: 150,
+          Tournament: {} as Tournament, // 循環参照を避けるために空オブジェクト
+          Participant: {
+            id: 'p2',
+            name: 'テスト参加者2',
+            weapon: '槍',
+            xp: 150,
+            createdAt: '2025-04-07T00:00:00.000Z',
+          },
+          isCaptain: false,
           createdAt: '2025-04-07T00:00:00.000Z',
         },
       ],
@@ -63,22 +73,30 @@ describe('useTournamentData', () => {
     (fetchTournament as jest.Mock).mockResolvedValue(mockTournament);
     (addCaptainFlagsToParticipants as jest.Mock).mockReturnValue({
       ...mockTournament,
-      participants: [
+      tournamentParticipants: [
         {
-          id: 'p1',
-          name: 'テスト参加者1',
-          weapon: '剣',
-          xp: 100,
-          createdAt: '2025-04-07T00:00:00.000Z',
+          Tournament: {} as Tournament,
+          Participant: {
+            id: 'p1',
+            name: 'テスト参加者1',
+            weapon: '剣',
+            xp: 100,
+            createdAt: '2025-04-07T00:00:00.000Z',
+          },
           isCaptain: true,
+          createdAt: '2025-04-07T00:00:00.000Z',
         },
         {
-          id: 'p2',
-          name: 'テスト参加者2',
-          weapon: '槍',
-          xp: 150,
-          createdAt: '2025-04-07T00:00:00.000Z',
+          Tournament: {} as Tournament,
+          Participant: {
+            id: 'p2',
+            name: 'テスト参加者2',
+            weapon: '槍',
+            xp: 150,
+            createdAt: '2025-04-07T00:00:00.000Z',
+          },
           isCaptain: false,
+          createdAt: '2025-04-07T00:00:00.000Z',
         },
       ],
     });
@@ -99,22 +117,30 @@ describe('useTournamentData', () => {
       id: '1',
       name: 'テストトーナメント',
       createdAt: '2025-04-07T00:00:00.000Z',
-      participants: [
+      tournamentParticipants: [
         {
-          id: 'p1',
-          name: 'テスト参加者1',
-          weapon: '剣',
-          xp: 100,
-          createdAt: '2025-04-07T00:00:00.000Z',
+          Tournament: {} as Tournament,
+          Participant: {
+            id: 'p1',
+            name: 'テスト参加者1',
+            weapon: '剣',
+            xp: 100,
+            createdAt: '2025-04-07T00:00:00.000Z',
+          },
           isCaptain: true,
+          createdAt: '2025-04-07T00:00:00.000Z',
         },
         {
-          id: 'p2',
-          name: 'テスト参加者2',
-          weapon: '槍',
-          xp: 150,
-          createdAt: '2025-04-07T00:00:00.000Z',
+          Tournament: {} as Tournament,
+          Participant: {
+            id: 'p2',
+            name: 'テスト参加者2',
+            weapon: '槍',
+            xp: 150,
+            createdAt: '2025-04-07T00:00:00.000Z',
+          },
           isCaptain: false,
+          createdAt: '2025-04-07T00:00:00.000Z',
         },
       ],
     });
@@ -165,7 +191,7 @@ describe('useTournamentData', () => {
       id: '1',
       name: '初期トーナメント',
       createdAt: '2025-04-07T00:00:00.000Z',
-      participants: [],
+      tournamentParticipants: [],
     };
 
     // 更新後のデータ
@@ -173,12 +199,17 @@ describe('useTournamentData', () => {
       id: '1',
       name: '更新済みトーナメント',
       createdAt: '2025-04-07T00:00:00.000Z',
-      participants: [
+      tournamentParticipants: [
         {
-          id: 'p1',
-          name: '新しい参加者',
-          weapon: '弓',
-          xp: 200,
+          Tournament: {} as Tournament,
+          Participant: {
+            id: 'p1',
+            name: '新しい参加者',
+            weapon: '弓',
+            xp: 200,
+            createdAt: '2025-04-07T00:00:00.000Z',
+          },
+          isCaptain: false,
           createdAt: '2025-04-07T00:00:00.000Z',
         },
       ],

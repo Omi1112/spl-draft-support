@@ -28,11 +28,20 @@ export class GetTournamentUseCase {
       id: tournament.id.value,
       name: tournament.name,
       createdAt: tournament.createdAt.toISOString(),
-      participants: participants.map((p) => ({
-        id: p.id.value,
-        name: p.name,
-        weapon: p.weapon,
-        xp: p.xp,
+      tournamentParticipants: participants.map((p) => ({
+        tournament: {
+          id: tournament.id.value,
+          name: tournament.name,
+          createdAt: tournament.createdAt.toISOString(),
+        },
+        participant: {
+          id: p.id.value,
+          name: p.name,
+          weapon: p.weapon,
+          xp: p.xp,
+          isCaptain: p.isCaptain,
+          createdAt: p.createdAt.toISOString(),
+        },
         isCaptain: p.isCaptain,
         createdAt: p.createdAt.toISOString(),
       })),
@@ -46,7 +55,7 @@ export class GetTournamentUseCase {
         ? {
             round: tournament.draftStatus.round,
             turn: tournament.draftStatus.turn,
-            status: tournament.draftStatus.status,
+            isActive: tournament.draftStatus.isActive,
           }
         : undefined,
     };

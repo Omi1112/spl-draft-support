@@ -158,11 +158,11 @@ export class PrismaDraftRepository implements DraftRepository {
       participant?: Participant;
     }
   ): Draft {
-    return new Draft(
-      new DraftId(prismaModel.id),
-      new TournamentId(prismaModel.tournamentId),
-      new ParticipantId(prismaModel.captainId),
-      new ParticipantId(prismaModel.participantId),
+    return Draft.reconstruct(
+      prismaModel.id,
+      prismaModel.tournamentId,
+      prismaModel.captainId,
+      prismaModel.participantId,
       prismaModel.round,
       prismaModel.turn,
       prismaModel.status,

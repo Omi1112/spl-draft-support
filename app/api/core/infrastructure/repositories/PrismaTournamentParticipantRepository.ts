@@ -127,12 +127,12 @@ export class PrismaTournamentParticipantRepository implements TournamentParticip
     teamId: string | null;
     createdAt: Date;
   }): TournamentParticipant {
-    return new TournamentParticipant(
-      new TournamentParticipantId(data.id),
-      new TournamentId(data.tournamentId),
-      new ParticipantId(data.participantId),
+    return TournamentParticipant.reconstruct(
+      data.id,
+      data.tournamentId,
+      data.participantId,
       data.isCaptain,
-      data.teamId ? new TeamId(data.teamId) : null,
+      data.teamId,
       data.createdAt
     );
   }

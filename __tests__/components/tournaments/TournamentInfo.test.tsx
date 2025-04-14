@@ -8,19 +8,29 @@ describe('TournamentInfo', () => {
     id: 'test-id-123',
     name: 'テスト大会',
     createdAt: '2025-04-07T00:00:00.000Z',
-    participants: [
+    tournamentParticipants: [
       {
-        id: 'participant-1',
-        name: 'テスト参加者1',
-        weapon: 'シューター',
-        xp: 2000,
+        Tournament: {} as Tournament, // 循環参照を避けるために空オブジェクトを使用
+        Participant: {
+          id: 'participant-1',
+          name: 'テスト参加者1',
+          weapon: 'シューター',
+          xp: 2000,
+          createdAt: '2025-04-06T00:00:00.000Z',
+        },
+        isCaptain: false,
         createdAt: '2025-04-06T00:00:00.000Z',
       },
       {
-        id: 'participant-2',
-        name: 'テスト参加者2',
-        weapon: 'チャージャー',
-        xp: 2200,
+        Tournament: {} as Tournament, // 循環参照を避けるために空オブジェクトを使用
+        Participant: {
+          id: 'participant-2',
+          name: 'テスト参加者2',
+          weapon: 'チャージャー',
+          xp: 2200,
+          createdAt: '2025-04-06T00:00:00.000Z',
+        },
+        isCaptain: false,
         createdAt: '2025-04-06T00:00:00.000Z',
       },
     ],
@@ -61,7 +71,7 @@ describe('TournamentInfo', () => {
   it('参加者が0人の場合も正しく表示されること', () => {
     const emptyTournament: Tournament = {
       ...mockTournament,
-      participants: [],
+      tournamentParticipants: [],
     };
 
     render(<TournamentInfo tournament={emptyTournament} />);

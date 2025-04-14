@@ -13,7 +13,7 @@ describe('useCaptainManagement', () => {
     id: '1',
     name: 'テストトーナメント',
     createdAt: '2025-04-07T00:00:00.000Z',
-    participants: [],
+    tournamentParticipants: [],
   };
 
   // 正しい型のモック関数を作成

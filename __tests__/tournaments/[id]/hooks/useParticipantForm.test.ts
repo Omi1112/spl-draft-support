@@ -25,7 +25,7 @@ describe('useParticipantForm', () => {
     id: '1',
     name: 'テストトーナメント',
     createdAt: '2025-04-07T00:00:00.000Z',
-    participants: [],
+    tournamentParticipants: [],
   };
   const mockOnParticipantAdded = jest.fn().mockResolvedValue(undefined);
 

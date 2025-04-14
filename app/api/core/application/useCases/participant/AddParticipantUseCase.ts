@@ -1,6 +1,8 @@
 import { Participant } from '../../../domain/entities/Participant';
+import { TournamentParticipant } from '../../../domain/entities/TournamentParticipant';
 import { ParticipantRepository } from '../../../domain/repositories/ParticipantRepository';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
+import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
 import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 import { CreateParticipantDTO, ParticipantDTO } from '../../interfaces/DTOs';
@@ -8,7 +10,8 @@ import { CreateParticipantDTO, ParticipantDTO } from '../../interfaces/DTOs';
 export class AddParticipantUseCase {
   constructor(
     private participantRepository: ParticipantRepository,
-    private tournamentRepository: TournamentRepository
+    private tournamentRepository: TournamentRepository,
+    private tournamentParticipantRepository: TournamentParticipantRepository
   ) {}
 
   async execute(dto: CreateParticipantDTO): Promise<ParticipantDTO | null> {
@@ -24,21 +27,20 @@ export class AddParticipantUseCase {
     const id = `participant-${Date.now()}`;
     const participantId = new ParticipantId(id);
 
-    const participant = new Participant(
-      participantId,
-      dto.name,
-      dto.weapon,
-      dto.xp,
-      new Date(),
-      dto.isCaptain || false
-    );
+    // privateコンストラクタではなく、createメソッドを使用
+    const participant = Participant.create(dto.name, dto.weapon, dto.xp, dto.isCaptain || false);
 
     // 参加者を保存
     const savedParticipant = await this.participantRepository.save(participant);
 
-    // トーナメントに参加者IDを追加（オブジェクトではなくIDのみを追加）
-    tournament.addParticipantId(participantId);
-    await this.tournamentRepository.save(tournament);
+    // トーナメント参加者の関連を作成して保存
+    const tournamentParticipant = TournamentParticipant.create(
+      tournamentId,
+      savedParticipant.id,
+      savedParticipant.isCaptain
+    );
+
+    await this.tournamentParticipantRepository.save(tournamentParticipant);
 
     // DTOに変換して返却
     return {

@@ -222,9 +222,9 @@ export class PrismaTeamRepository implements TeamRepository {
       team.id,
       team.name,
       team.captainId,
-      team.tournamentId, // tournamentIdを追加
-      team.members.map((m) => m.participantId) // TeamMemberからparticipantIdを取得
-      // createdAt は reconstruct のデフォルト引数で Date 型になるため不要
+      team.tournamentId,
+      team.members.map((m) => m.participantId),
+      team.createdAt.toISOString()
     );
   }
 }
