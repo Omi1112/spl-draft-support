@@ -41,10 +41,12 @@ export class NominateParticipantUseCase {
       }
 
       // 指名済みかどうかチェック
-      const existingDraft = await this.draftRepository.findByTournamentIdCaptainIdAndParticipantId(
+      const drafts = await this.draftRepository.findByTournamentAndCaptain(
         new TournamentId(input.tournamentId),
-        new ParticipantId(input.captainId),
-        new ParticipantId(input.participantId)
+        new ParticipantId(input.captainId)
+      );
+      const existingDraft = drafts.find(
+        (draft) => draft.participantId.value === input.participantId
       );
 
       if (existingDraft) {
@@ -58,9 +60,7 @@ export class NominateParticipantUseCase {
       const turn = 1;
 
       // 新しいドラフトを作成
-      const draftId = DraftId.create();
       const draft = Draft.create(
-        draftId,
         new TournamentId(input.tournamentId),
         new ParticipantId(input.captainId),
         new ParticipantId(input.participantId),

@@ -42,32 +42,8 @@ describe('useTournamentData', () => {
       id: '1',
       name: 'テストトーナメント',
       createdAt: '2025-04-07T00:00:00.000Z',
-      tournamentParticipants: [
-        {
-          Tournament: {} as Tournament, // 循環参照を避けるために空オブジェクト
-          Participant: {
-            id: 'p1',
-            name: 'テスト参加者1',
-            weapon: '剣',
-            xp: 100,
-            createdAt: '2025-04-07T00:00:00.000Z',
-          },
-          isCaptain: false,
-          createdAt: '2025-04-07T00:00:00.000Z',
-        },
-        {
-          Tournament: {} as Tournament, // 循環参照を避けるために空オブジェクト
-          Participant: {
-            id: 'p2',
-            name: 'テスト参加者2',
-            weapon: '槍',
-            xp: 150,
-            createdAt: '2025-04-07T00:00:00.000Z',
-          },
-          isCaptain: false,
-          createdAt: '2025-04-07T00:00:00.000Z',
-        },
-      ],
+      // participants: [], // 存在しないプロパティのため削除
+      tournamentParticipants: [], // 必要に応じて追加
     };
 
     (fetchTournament as jest.Mock).mockResolvedValue(mockTournament);
@@ -250,7 +226,7 @@ describe('useTournamentData', () => {
       id: '1',
       name: 'テストトーナメント',
       createdAt: '2025-04-07T00:00:00.000Z',
-      participants: [],
+      tournamentParticipants: [],
     };
     (fetchTournament as jest.Mock).mockResolvedValue(mockTournament);
 

@@ -29,6 +29,7 @@ export class GetTournamentUseCase {
       name: tournament.name,
       createdAt: tournament.createdAt.toISOString(),
       tournamentParticipants: participants.map((p) => ({
+        id: p.id.value, // TournamentParticipantDTOのidを追加
         tournament: {
           id: tournament.id.value,
           name: tournament.name,
