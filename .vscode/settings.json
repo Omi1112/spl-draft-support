@@ -8,5 +8,30 @@
   },
   "eslint.validate": ["javascript", "typescript"],
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.codeGeneration.instructions": [
+    // コード生成の設定です。
+    {
+      "file": ".copilot-codeGeneration-instructions.md"
+    }
+  ],
+  "github.copilot.chat.testGeneration.instructions": [
+    // テストコード生成の設定です。
+    {
+      "file": ".copilot-test-instructions.md"
+    }
+  ],
+  "github.copilot.chat.reviewSelection.instructions": [
+    // コードレビューの設定です。
+    {
+      "file": ".copilot-review-instructions.md"
+    }
+  ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    //コミットメッセージ生成の設定です。
+    {
+      "file": ".copilot-commit-message-instructions.md"
+    }
+  ]
 }
