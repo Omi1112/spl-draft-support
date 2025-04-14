@@ -1,4 +1,5 @@
 import { GetDraftsUseCase } from '../../core/application/useCases/draft/GetDraftsUseCase';
+import { NominateParticipantUseCase } from '../../core/application/useCases/draft/NominateParticipantUseCase';
 import { ResetDraftUseCase } from '../../core/application/useCases/draft/ResetDraftUseCase';
 import { StartDraftUseCase } from '../../core/application/useCases/draft/StartDraftUseCase';
 import { DraftDomainService } from '../../core/domain/services/DraftDomainService';
@@ -26,6 +27,7 @@ const draftDomainService = new DraftDomainService(
 const getDraftsUseCase = new GetDraftsUseCase(draftRepository);
 const resetDraftUseCase = new ResetDraftUseCase(draftDomainService);
 const startDraftUseCase = new StartDraftUseCase(draftDomainService);
+const nominateParticipantUseCase = new NominateParticipantUseCase(draftRepository);
 
 // 型定義
 type Context = Record<string, unknown>;
@@ -46,6 +48,13 @@ interface ResetDraftInput {
 // ドラフト開始用の入力型
 interface StartDraftInput {
   tournamentId: string;
+}
+
+// 参加者指名用の入力型
+interface NominateParticipantInput {
+  tournamentId: string;
+  captainId: string;
+  participantId: string;
 }
 
 export const draftResolvers = {
@@ -138,6 +147,30 @@ export const draftResolvers = {
         console.error('ドラフト開始エラー:', error);
         // エラー時は GraphQL がエラーをハンドルする
         throw new Error('ドラフトの開始に失敗しました');
+      }
+    },
+
+    // 参加者指名
+    nominateParticipant: async (_: Context, { input }: { input: NominateParticipantInput }) => {
+      try {
+        const result = await nominateParticipantUseCase.execute(input);
+
+        console.log(
+          `トーナメントID ${input.tournamentId} でキャプテン ${input.captainId} が参加者 ${input.participantId} を指名しました`
+        );
+        return {
+          id: result.id,
+          tournamentId: input.tournamentId,
+          captainId: input.captainId,
+          participantId: input.participantId,
+          round: 1, // 実際のラウンド情報はユースケースから取得するべき
+          turn: 1, // 実際のターン情報はユースケースから取得するべき
+          status: result.status,
+          createdAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        console.error('参加者指名エラー:', error);
+        throw error instanceof Error ? error : new Error('参加者の指名に失敗しました');
       }
     },
   },

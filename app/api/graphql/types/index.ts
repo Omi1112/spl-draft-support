@@ -127,6 +127,13 @@ export const typeDefs = gql`
     tournamentId: ID!
   }
 
+  # 参加者指名用の入力タイプを追加
+  input NominateParticipantInput {
+    tournamentId: ID!
+    captainId: ID!
+    participantId: ID!
+  }
+
   type TournamentParticipant {
     id: ID!
     tournamentId: ID!
@@ -151,5 +158,7 @@ export const typeDefs = gql`
     resetDraft(input: ResetDraftInput!): Boolean!
     # ドラフト開始ミューテーションを追加
     startDraft(input: StartDraftInput!): Boolean!
+    # 参加者指名ミューテーションを追加
+    nominateParticipant(input: NominateParticipantInput!): Draft!
   }
 `;
