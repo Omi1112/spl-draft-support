@@ -55,4 +55,12 @@ export class DraftStatus {
   complete(): DraftStatus {
     return new DraftStatus(this._round, this._turn, false);
   }
+
+  /**
+   * ドラフトステータスをリセット（初期状態に戻す）
+   * @returns リセットされたドラフトステータス（ラウンド: 0, ターン: 0, アクティブ: false）
+   */
+  reset(): DraftStatus {
+    return new DraftStatus(0, 0, false);
+  }
 }

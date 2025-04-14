@@ -2,6 +2,7 @@ import { DraftStatus } from '../valueObjects/DraftStatus';
 import { TournamentId } from '../valueObjects/TournamentId';
 import { ParticipantId } from '../valueObjects/ParticipantId';
 import { TeamId } from '../valueObjects/TeamId';
+import { Draft } from './Draft';
 
 /**
  * トーナメントエンティティ
@@ -11,10 +12,9 @@ export class Tournament {
   private readonly _id: TournamentId;
   private _name: string;
   private _createdAt: Date;
-  private _draftStatus?: DraftStatus;
-  private _currentCaptainId?: ParticipantId; // ドラフト中の現在のキャプテンID
-
-  private constructor(id: TournamentId, name: string, createdAt: Date, draftStatus?: DraftStatus) {
+  private _draftStatus: DraftStatus;
+  
+  private constructor(id: TournamentId, name: string, createdAt: Date, draftStatus: DraftStatus) {
     this._id = id;
     this._name = name;
     this._createdAt = createdAt;
@@ -27,7 +27,7 @@ export class Tournament {
    * @returns 新しいトーナメントエンティティ
    */
   static create(name: string): Tournament {
-    return new Tournament(TournamentId.create(), name, new Date());
+    return new Tournament(TournamentId.create(), name, new Date(), DraftStatus.create());
   }
 
   /**
@@ -42,24 +42,9 @@ export class Tournament {
     id: string,
     name: string,
     createdAt: Date,
-    draftStatusRound?: number,
-    draftStatusTurn?: number,
-    draftStatusIsActive?: boolean
+    draftStatus: DraftStatus
   ): Tournament {
-    const tournament = new Tournament(TournamentId.reconstruct(id), name, createdAt);
-
-    // ドラフトステータスが存在する場合のみ設定する
-    if (
-      draftStatusRound !== undefined &&
-      draftStatusTurn !== undefined &&
-      draftStatusIsActive !== undefined
-    ) {
-      tournament._draftStatus = new DraftStatus(
-        draftStatusRound,
-        draftStatusTurn,
-        draftStatusIsActive
-      );
-    }
+    const tournament = new Tournament(TournamentId.reconstruct(id), name, createdAt, draftStatus);
 
     return tournament;
   }
@@ -69,14 +54,7 @@ export class Tournament {
    * ラウンド1、ターン1で開始し、アクティブな状態にする
    */
   startDraft(): void {
-    if (!this._draftStatus) {
-      this._draftStatus = new DraftStatus(1, 1, true);
-    } else {
-      this._draftStatus = new DraftStatus(1, 1, true);
-    }
-    // ここでは簡易的な実装としてキャプテンIDはnullにしておく
-    // 実際の実装では最初のターンのキャプテンIDを設定する必要がある
-    this._currentCaptainId = undefined;
+    this._draftStatus = this._draftStatus.start();
   }
 
   /**
@@ -84,8 +62,7 @@ export class Tournament {
    * ドラフトに関連するデータをクリアする
    */
   reset(): void {
-    this._draftStatus = undefined;
-    this._currentCaptainId = undefined;
+    this._draftStatus = this._draftStatus.reset();
   }
 
   /**
@@ -94,22 +71,6 @@ export class Tournament {
    */
   updateDraftStatus(draftStatus: DraftStatus): void {
     this._draftStatus = draftStatus;
-  }
-
-  /**
-   * 現在のドラフトターンのキャプテンIDを設定する
-   * @param captainId キャプテンID
-   */
-  setCurrentCaptainId(captainId: ParticipantId): void {
-    this._currentCaptainId = captainId;
-  }
-
-  /**
-   * 現在のドラフトターンのキャプテンIDを取得する
-   * @returns キャプテンID（未設定の場合はundefined）
-   */
-  getCurrentCaptainId(): ParticipantId | undefined {
-    return this._currentCaptainId;
   }
 
   // Getters
