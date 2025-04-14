@@ -1,9 +1,10 @@
+import { PrismaClient } from '@prisma/client';
+
 import { Tournament } from '../../domain/entities/Tournament';
 import { TournamentRepository } from '../../domain/repositories/TournamentRepository';
 import { DraftStatus } from '../../domain/valueObjects/DraftStatus';
 import { TournamentId } from '../../domain/valueObjects/TournamentId';
 import { prisma } from '../persistence/prisma/client';
-import { PrismaClient } from '@prisma/client';
 
 export class PrismaTournamentRepository implements TournamentRepository {
   private prismaClient: PrismaClient;

@@ -1,7 +1,7 @@
 import { Team } from '../entities/Team';
+import { ParticipantId } from '../valueObjects/ParticipantId';
 import { TeamId } from '../valueObjects/TeamId';
 import { TournamentId } from '../valueObjects/TournamentId';
-import { ParticipantId } from '../valueObjects/ParticipantId';
 
 export interface TeamRepository {
   findById(id: TeamId): Promise<Team | null>;

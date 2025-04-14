@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Tournament } from '../../../components/tournaments/types';
+import { useState, useEffect } from 'react';
+
 import { fetchTournament } from '../../../client/tournamentClient';
+import { Tournament } from '../../../components/tournaments/types';
+
 import { addCaptainFlagsToParticipants } from './tournamentUtils';
 
 /**

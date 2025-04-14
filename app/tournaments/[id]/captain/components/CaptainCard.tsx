@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+
 import { formatDate } from '../../../../utils/formatDate';
 import { Captain } from '../types';
 

@@ -1,7 +1,8 @@
 'use client';
 
-import { Tournament } from '../types';
 import Link from 'next/link';
+
+import { Tournament } from '../types';
 
 interface DraftManagementProps {
   tournament: Tournament;

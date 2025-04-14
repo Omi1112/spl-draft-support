@@ -1,7 +1,7 @@
-import { TournamentParticipantId } from '../valueObjects/TournamentParticipantId';
-import { TournamentId } from '../valueObjects/TournamentId';
 import { ParticipantId } from '../valueObjects/ParticipantId';
 import { TeamId } from '../valueObjects/TeamId';
+import { TournamentId } from '../valueObjects/TournamentId';
+import { TournamentParticipantId } from '../valueObjects/TournamentParticipantId';
 
 /**
  * トーナメント参加者エンティティ

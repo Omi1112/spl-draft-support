@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { fetchTournaments } from '../client/tournamentClient';
 
 // 大会データの型定義

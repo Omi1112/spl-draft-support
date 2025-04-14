@@ -1,9 +1,9 @@
 // filepath: /workspace/app/api/core/infrastructure/repositories/PrismaTournamentParticipantRepository.ts
-import { TournamentParticipantRepository } from '../../domain/repositories/TournamentParticipantRepository';
 import { TournamentParticipant } from '../../domain/entities/TournamentParticipant';
-import { TournamentParticipantId } from '../../domain/valueObjects/TournamentParticipantId';
-import { TournamentId } from '../../domain/valueObjects/TournamentId';
+import { TournamentParticipantRepository } from '../../domain/repositories/TournamentParticipantRepository';
 import { ParticipantId } from '../../domain/valueObjects/ParticipantId';
+import { TournamentId } from '../../domain/valueObjects/TournamentId';
+import { TournamentParticipantId } from '../../domain/valueObjects/TournamentParticipantId';
 import { prisma } from '../persistence/prisma/client';
 
 export class PrismaTournamentParticipantRepository implements TournamentParticipantRepository {

@@ -1,12 +1,12 @@
-import { prisma } from '../../core/infrastructure/persistence/prisma/client';
-import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
-import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
-import { PrismaTournamentParticipantRepository } from '../../core/infrastructure/repositories/PrismaTournamentParticipantRepository';
 import { AddParticipantToTournamentUseCase } from '../../core/application/useCases/participant/AddParticipantToTournamentUseCase';
 import { ToggleCaptainUseCase } from '../../core/application/useCases/participant/ToggleCaptainUseCase';
+import { TournamentParticipantDomainService } from '../../core/domain/services/TournamentParticipantDomainService';
 import { ParticipantId } from '../../core/domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../core/domain/valueObjects/TournamentId';
-import { TournamentParticipantDomainService } from '../../core/domain/services/TournamentParticipantDomainService';
+import { prisma } from '../../core/infrastructure/persistence/prisma/client';
+import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
+import { PrismaTournamentParticipantRepository } from '../../core/infrastructure/repositories/PrismaTournamentParticipantRepository';
+import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
 
 // リポジトリの初期化
 const participantRepository = new PrismaParticipantRepository();

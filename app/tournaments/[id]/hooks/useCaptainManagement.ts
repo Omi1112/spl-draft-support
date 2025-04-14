@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Tournament } from '../../../components/tournaments/types';
+
 import { toggleCaptain } from '../../../client/tournamentClient';
+import { Tournament } from '../../../components/tournaments/types';
 
 /**
  * キャプテン管理のための処理を行うカスタムフック

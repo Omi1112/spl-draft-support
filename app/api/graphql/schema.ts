@@ -1,6 +1,7 @@
 import { createSchema } from 'graphql-yoga';
-import { typeDefs } from './types';
+
 import { resolvers } from './resolvers';
+import { typeDefs } from './types';
 
 // Schema-firstアプローチでスキーマを作成
 export const schema = createSchema({

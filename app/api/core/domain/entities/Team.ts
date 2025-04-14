@@ -1,5 +1,5 @@
-import { TeamId } from '../valueObjects/TeamId';
 import { ParticipantId } from '../valueObjects/ParticipantId';
+import { TeamId } from '../valueObjects/TeamId';
 import { TournamentId } from '../valueObjects/TournamentId';
 
 /**

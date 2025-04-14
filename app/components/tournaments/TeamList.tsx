@@ -2,8 +2,10 @@
 // チーム一覧を表示するコンポーネント
 
 import React from 'react';
-import { Team } from './types';
+
 import { formatDate } from '../../utils/formatDate';
+
+import { Team } from './types';
 
 interface TeamListProps {
   teams?: Team[];

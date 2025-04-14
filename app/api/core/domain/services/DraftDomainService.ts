@@ -1,9 +1,9 @@
-import { TournamentId } from '../valueObjects/TournamentId';
+import { Team } from '../entities/Team'; // Team のインポートは startDraft 内で使うため残す
 import { DraftRepository } from '../repositories/DraftRepository';
 import { TeamRepository } from '../repositories/TeamRepository';
 import { TournamentParticipantRepository } from '../repositories/TournamentParticipantRepository';
 import { TournamentRepository } from '../repositories/TournamentRepository';
-import { Team } from '../entities/Team'; // Team のインポートは startDraft 内で使うため残す
+import { TournamentId } from '../valueObjects/TournamentId';
 
 /**
  * ドラフトに関するドメインサービスの実装

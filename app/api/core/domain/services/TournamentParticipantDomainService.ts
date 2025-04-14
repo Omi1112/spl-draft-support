@@ -1,7 +1,7 @@
 import { TournamentParticipant } from '../entities/TournamentParticipant';
-import { TournamentId } from '../valueObjects/TournamentId';
-import { ParticipantId } from '../valueObjects/ParticipantId';
 import { TournamentParticipantRepository } from '../repositories/TournamentParticipantRepository';
+import { ParticipantId } from '../valueObjects/ParticipantId';
+import { TournamentId } from '../valueObjects/TournamentId';
 
 /**
  * トーナメント参加者のドメインサービス

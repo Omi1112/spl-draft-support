@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { ParticipantFormData, Tournament } from '../../../components/tournaments/types';
+
 import { addParticipantToTournament } from '../../../client/tournamentClient';
+import { ParticipantFormData, Tournament } from '../../../components/tournaments/types';
+
 import { createEmptyParticipantForm, createParticipantData } from './tournamentUtils';
 
 /**

@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 // 分割したコンポーネントとAPI、型定義のインポート
-import { Tournament, Participant, Draft, NominatedParticipantItem } from './types';
 import { fetchTournamentData, startDraft, resetDraft, nominateParticipant } from './api';
+import { CaptainInfo } from './components/CaptainInfo';
 import { ConfirmModal } from './components/ConfirmModal';
 import { DraftManagement } from './components/DraftManagement';
-import { CaptainInfo } from './components/CaptainInfo';
 import { NominatedParticipantsList } from './components/NominatedParticipantsList';
 import { UnassignedParticipantsList } from './components/UnassignedParticipantsList';
+import { Tournament, Participant, Draft, NominatedParticipantItem } from './types';
 
 export default function CaptainPersonalPage() {
   const params = useParams();

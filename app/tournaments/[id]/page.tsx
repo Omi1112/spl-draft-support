@@ -1,21 +1,23 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { formatDate } from '../../utils/formatDate';
+import React from 'react';
+
 
 // フックのインポート
-import { useTournamentDetails } from './hooks/useTournamentDetails';
 
 // コンポーネントのインポート
-import { TournamentInfo } from '../../components/tournaments/TournamentInfo';
-import { TeamList } from '../../components/tournaments/TeamList';
-import { ParticipantList } from '../../components/tournaments/ParticipantList';
 import { AddParticipantModal } from '../../components/tournaments/AddParticipantModal';
 import { ConfirmDialog } from '../../components/tournaments/ConfirmDialog';
-import { LoadingState } from './components/LoadingState';
+import { ParticipantList } from '../../components/tournaments/ParticipantList';
+import { TeamList } from '../../components/tournaments/TeamList';
+import { TournamentInfo } from '../../components/tournaments/TournamentInfo';
+import { formatDate } from '../../utils/formatDate';
+
 import { ErrorState } from './components/ErrorState';
+import { LoadingState } from './components/LoadingState';
+import { useTournamentDetails } from './hooks/useTournamentDetails';
 
 export default function TournamentDetails() {
   const params = useParams();

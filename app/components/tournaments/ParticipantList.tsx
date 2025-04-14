@@ -1,8 +1,9 @@
 // filepath: /workspace/app/components/tournaments/ParticipantList.tsx
 // 参加者一覧を表示するコンポーネント
 
-import React, { useMemo } from 'react';
 import Link from 'next/link';
+import React, { useMemo } from 'react';
+
 import { TournamentParticipantWithParticipant } from './types';
 
 interface ParticipantListProps {

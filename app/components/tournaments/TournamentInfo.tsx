@@ -2,6 +2,7 @@
 // トーナメント（大会）の基本情報を表示するコンポーネント
 
 import React from 'react';
+
 import { Tournament } from './types';
 
 interface TournamentInfoProps {

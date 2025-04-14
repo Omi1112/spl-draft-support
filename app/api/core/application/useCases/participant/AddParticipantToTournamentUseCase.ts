@@ -1,8 +1,8 @@
 import { Participant } from '../../../domain/entities/Participant';
 import { TournamentParticipant } from '../../../domain/entities/TournamentParticipant';
 import { ParticipantRepository } from '../../../domain/repositories/ParticipantRepository';
-import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
 import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
+import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 
 export interface AddParticipantDTO {

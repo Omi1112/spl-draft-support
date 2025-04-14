@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 // 型定義とAPIクライアント関数のインポート
-import { TournamentWithCaptains } from './types';
+import { ErrorState } from '../components/ErrorState';
+import { LoadingState } from '../components/LoadingState';
+
 import { fetchTournamentCaptains } from './api';
 
 // 共通コンポーネントのインポート
-import { LoadingState } from '../components/LoadingState';
-import { ErrorState } from '../components/ErrorState';
 
 // 新しく作成したコンポーネントのインポート
 import { CaptainCard } from './components/CaptainCard';
+import { TournamentWithCaptains } from './types';
 
 export default function TournamentCaptainsPage() {
   const params = useParams();

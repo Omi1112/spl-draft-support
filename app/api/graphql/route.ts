@@ -1,6 +1,7 @@
 import { createYoga } from 'graphql-yoga';
-import { schema } from './schema';
 import { NextRequest } from 'next/server';
+
+import { schema } from './schema';
 
 // GraphQL APIをNext.jsのAPIルートとして構成
 const yoga = createYoga({

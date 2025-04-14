@@ -1,8 +1,8 @@
 // メインのリゾルバーファイル - 他のリゾルバファイルを統合します
-import { tournamentResolvers } from './tournamentResolvers';
+import { draftResolvers } from './draftResolvers';
 import { participantResolvers } from './participantResolvers';
 import { teamResolvers } from './teamResolvers';
-import { draftResolvers } from './draftResolvers';
+import { tournamentResolvers } from './tournamentResolvers';
 
 // リゾルバーの結合
 export const resolvers = {

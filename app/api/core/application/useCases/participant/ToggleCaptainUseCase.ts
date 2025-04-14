@@ -1,8 +1,8 @@
 // filepath: /workspace/app/api/core/application/useCases/participant/ToggleCaptainUseCase.ts
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
-import { TournamentId } from '../../../domain/valueObjects/TournamentId';
-import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
 import { TournamentParticipantDomainService } from '../../../domain/services/TournamentParticipantDomainService';
+import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
+import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 
 interface ToggleCaptainInput {
   tournamentId: string;

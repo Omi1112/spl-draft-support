@@ -1,13 +1,13 @@
-import { GetTournamentUseCase } from '../../core/application/useCases/tournament/GetTournamentUseCase';
-import { GetTournamentsUseCase } from '../../core/application/useCases/tournament/GetTournamentsUseCase';
+import { CreateTournamentDTO } from '../../core/application/interfaces/DTOs';
+import { GetTeamsByTournamentIdUseCase } from '../../core/application/useCases/team/GetTeamsByTournamentIdUseCase';
 import { CreateTournamentUseCase } from '../../core/application/useCases/tournament/CreateTournamentUseCase';
 import { GetTournamentParticipantsByTournamentIdUseCase } from '../../core/application/useCases/tournament/GetTournamentParticipantsByTournamentIdUseCase';
-import { GetTeamsByTournamentIdUseCase } from '../../core/application/useCases/team/GetTeamsByTournamentIdUseCase';
-import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
+import { GetTournamentsUseCase } from '../../core/application/useCases/tournament/GetTournamentsUseCase';
+import { GetTournamentUseCase } from '../../core/application/useCases/tournament/GetTournamentUseCase';
 import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
 import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
 import { PrismaTournamentParticipantRepository } from '../../core/infrastructure/repositories/PrismaTournamentParticipantRepository';
-import { CreateTournamentDTO } from '../../core/application/interfaces/DTOs';
+import { PrismaTournamentRepository } from '../../core/infrastructure/repositories/PrismaTournamentRepository';
 
 // リポジトリの初期化
 const tournamentRepository = new PrismaTournamentRepository();

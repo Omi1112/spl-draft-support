@@ -1,8 +1,8 @@
-import { prisma } from '../../core/infrastructure/persistence/prisma/client';
-import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
-import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
-import { TournamentId } from '../../core/domain/valueObjects/TournamentId';
 import { ParticipantId } from '../../core/domain/valueObjects/ParticipantId';
+import { TournamentId } from '../../core/domain/valueObjects/TournamentId';
+import { prisma } from '../../core/infrastructure/persistence/prisma/client';
+import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
+import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
 
 // リポジトリの初期化
 const teamRepository = new PrismaTeamRepository();

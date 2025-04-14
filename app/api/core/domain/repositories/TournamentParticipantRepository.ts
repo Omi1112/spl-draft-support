@@ -1,8 +1,8 @@
 // filepath: /workspace/app/api/core/domain/repositories/TournamentParticipantRepository.ts
 import { TournamentParticipant } from '../entities/TournamentParticipant';
-import { TournamentParticipantId } from '../valueObjects/TournamentParticipantId';
-import { TournamentId } from '../valueObjects/TournamentId';
 import { ParticipantId } from '../valueObjects/ParticipantId';
+import { TournamentId } from '../valueObjects/TournamentId';
+import { TournamentParticipantId } from '../valueObjects/TournamentParticipantId';
 
 /**
  * トーナメント参加者リポジトリのインターフェース

@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatDate } from './utils/formatDate';
+
 import { useHome } from './hooks/useHome';
+import { formatDate } from './utils/formatDate';
 
 export default function Home() {
   const { tournaments, loading, error } = useHome();
