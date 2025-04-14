@@ -1,5 +1,6 @@
 import { GetDraftsUseCase } from '../../core/application/useCases/draft/GetDraftsUseCase';
 import { ResetDraftUseCase } from '../../core/application/useCases/draft/ResetDraftUseCase';
+import { StartDraftUseCase } from '../../core/application/useCases/draft/StartDraftUseCase';
 import { PrismaDraftRepository } from '../../core/infrastructure/repositories/PrismaDraftRepository';
 import { PrismaTeamRepository } from '../../core/infrastructure/repositories/PrismaTeamRepository';
 import { PrismaTournamentParticipantRepository } from '../../core/infrastructure/repositories/PrismaTournamentParticipantRepository';
@@ -25,6 +26,7 @@ const draftDomainService = new DraftDomainService(
 // ユースケースの初期化
 const getDraftsUseCase = new GetDraftsUseCase(draftRepository);
 const resetDraftUseCase = new ResetDraftUseCase(draftDomainService);
+const startDraftUseCase = new StartDraftUseCase(draftDomainService);
 
 // 型定義
 type Context = Record<string, unknown>;
@@ -39,6 +41,11 @@ interface UpdateDraftStatusInput {
 
 // リセットドラフト用の入力型
 interface ResetDraftInput {
+  tournamentId: string;
+}
+
+// ドラフト開始用の入力型
+interface StartDraftInput {
   tournamentId: string;
 }
 
@@ -113,6 +120,22 @@ export const draftResolvers = {
       } catch (error) {
         console.error('ドラフトリセットエラー:', error);
         throw new Error('ドラフトのリセットに失敗しました');
+      }
+    },
+
+    // ドラフト開始
+    startDraft: async (_: Context, { input }: { input: StartDraftInput }) => {
+      try {
+        const { tournamentId } = input;
+
+        // 依存性注入されたStartDraftUseCaseを使用してドラフトを開始
+        const team = await startDraftUseCase.execute(tournamentId);
+
+        console.log(`トーナメントID ${tournamentId} のドラフトを開始しました`);
+        return team;
+      } catch (error) {
+        console.error('ドラフト開始エラー:', error);
+        throw new Error('ドラフトの開始に失敗しました');
       }
     },
   },

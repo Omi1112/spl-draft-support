@@ -1,25 +1,28 @@
-// filepath: /workspace/app/api/core/domain/entities/Team.ts
 import { TeamId } from '../valueObjects/TeamId';
 import { ParticipantId } from '../valueObjects/ParticipantId';
+import { TournamentId } from '../valueObjects/TournamentId';
 
 export class Team {
   private readonly _id: TeamId;
   private _name: string;
   private _captainId: ParticipantId;
   private _memberIds: ParticipantId[];
+  private readonly _tournamentId: TournamentId;
   private readonly _createdAt: Date;
 
   constructor(
     id: TeamId,
     name: string,
     captainId: ParticipantId,
+    tournamentId: TournamentId,
     memberIds: ParticipantId[] = [],
     createdAt: Date
   ) {
     this._id = id;
     this._name = name;
     this._captainId = captainId;
-    this._memberIds = memberIds.length > 0 ? memberIds : [captainId];
+    this._tournamentId = tournamentId;
+    this._memberIds = memberIds;
     this._createdAt = createdAt;
   }
 
@@ -27,10 +30,11 @@ export class Team {
    * 新しいチームを作成
    * @param name チーム名
    * @param captainId キャプテンID
+   * @param tournamentId トーナメントID
    * @returns 新しいチームエンティティ
    */
-  static create(name: string, captainId: ParticipantId): Team {
-    return new Team(TeamId.create(), name, captainId, [], new Date());
+  static create(name: string, captainId: ParticipantId, tournamentId: TournamentId): Team {
+    return new Team(TeamId.create(), name, captainId, tournamentId, [], new Date());
   }
 
   /**
@@ -38,6 +42,7 @@ export class Team {
    * @param id チームID
    * @param name チーム名
    * @param captainId キャプテンID
+   * @param tournamentId トーナメントID
    * @param memberIds メンバーID配列
    * @param createdAt 作成日時
    * @returns 復元されたチームエンティティ
@@ -46,6 +51,7 @@ export class Team {
     id: string,
     name: string,
     captainId: string,
+    tournamentId: string,
     memberIds: string[] = [],
     createdAt: string
   ): Team {
@@ -53,6 +59,7 @@ export class Team {
       TeamId.reconstruct(id),
       name,
       ParticipantId.reconstruct(captainId),
+      TournamentId.reconstruct(tournamentId),
       memberIds.map((mid) => ParticipantId.reconstruct(mid)),
       new Date(createdAt)
     );
@@ -77,6 +84,10 @@ export class Team {
 
   get memberIds(): ParticipantId[] {
     return [...this._memberIds];
+  }
+
+  get tournamentId(): TournamentId {
+    return this._tournamentId;
   }
 
   addMember(participantId: ParticipantId): void {

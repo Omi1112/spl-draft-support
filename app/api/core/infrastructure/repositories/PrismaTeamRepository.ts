@@ -20,7 +20,9 @@ export class PrismaTeamRepository implements TeamRepository {
       new TeamId(team.id),
       team.name,
       new ParticipantId(team.captainId),
-      team.members.map((m) => new ParticipantId(m.id))
+      new TournamentId(team.tournamentId),
+      team.members.map((m) => new ParticipantId(m.id)),
+      team.createdAt
     );
   }
 
@@ -36,7 +38,9 @@ export class PrismaTeamRepository implements TeamRepository {
           new TeamId(team.id),
           team.name,
           new ParticipantId(team.captainId),
-          team.members.map((m) => new ParticipantId(m.id))
+          new TournamentId(team.tournamentId),
+          team.members.map((m) => new ParticipantId(m.id)),
+          team.createdAt
         )
     );
   }
@@ -55,28 +59,26 @@ export class PrismaTeamRepository implements TeamRepository {
       new TeamId(team.id),
       team.name,
       new ParticipantId(team.captainId),
-      team.members.map((m) => new ParticipantId(m.id))
+      new TournamentId(team.tournamentId),
+      team.members.map((m) => new ParticipantId(m.id)),
+      team.createdAt
     );
   }
 
   async save(team: Team): Promise<Team> {
-    // トーナメントIDを取得する（実際の実装ではこれを適切に取得する必要があります）
-    // 例えば、引数としてtournamentIdを受け取るようにメソッドを変更するか、
-    // チームエンティティにトーナメントIDを含めるとよいでしょう
-    const tournamentId = 'dummy-tournament-id';
-
     // チーム情報の更新または作成
     await prisma.team.upsert({
       where: { id: team.id.value },
       update: {
         name: team.name,
         captainId: team.captainId.value,
+        tournamentId: team.tournamentId.value,
       },
       create: {
         id: team.id.value,
         name: team.name,
         captainId: team.captainId.value,
-        tournamentId: tournamentId, // トーナメントIDを直接指定
+        tournamentId: team.tournamentId.value,
       },
     });
 
@@ -126,5 +128,58 @@ export class PrismaTeamRepository implements TeamRepository {
     await prisma.team.deleteMany({
       where: { tournamentId: tournamentId.value },
     });
+  }
+
+  /**
+   * トーナメントIDとキャプテンIDに紐づくチームを検索
+   * @param tournamentId 対象のトーナメントID
+   * @param captainId 対象のキャプテンID (省略可)
+   * @returns 見つかったチーム、見つからない場合はnull
+   */
+  async findByTournamentIdAndCaptainId(
+    tournamentId: TournamentId,
+    captainId?: ParticipantId
+  ): Promise<Team | null> {
+    // キャプテンIDが指定されていない場合は、そのトーナメントの最初のチームを返す
+    if (!captainId) {
+      const team = await prisma.team.findFirst({
+        where: { tournamentId: tournamentId.value },
+        include: { members: true },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (!team) {
+        return null;
+      }
+
+      return new Team(
+        new TeamId(team.id),
+        team.name,
+        new ParticipantId(team.captainId),
+        new TournamentId(team.tournamentId),
+        team.members.map((m) => new ParticipantId(m.id)),
+        team.createdAt
+      );
+    }
+
+    // キャプテンIDが指定されている場合は、トーナメントIDとキャプテンIDの両方で検索
+    const team = await prisma.team.findFirst({
+      where: {
+        tournamentId: tournamentId.value,
+        captainId: captainId.value,
+      },
+      include: { members: true },
+    });
+
+    if (!team) {
+      return null;
+    }
+
+    return new Team(
+      new TeamId(team.id),
+      team.name,
+      new ParticipantId(team.captainId),
+      team.members.map((m) => new ParticipantId(m.id))
+    );
   }
 }

@@ -15,4 +15,15 @@ export interface TeamRepository {
    * @param tournamentId 対象のトーナメントID
    */
   deleteByTournamentId(tournamentId: TournamentId): Promise<void>;
+
+  /**
+   * トーナメントIDとキャプテンIDに紐づくチームを検索
+   * @param tournamentId 対象のトーナメントID
+   * @param captainId 対象のキャプテンID
+   * @returns 見つかったチーム、見つからない場合はnull
+   */
+  findByTournamentIdAndCaptainId(
+    tournamentId: TournamentId,
+    captainId?: ParticipantId
+  ): Promise<Team | null>;
 }

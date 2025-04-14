@@ -8,6 +8,7 @@ export class Tournament {
   private _name: string;
   private _createdAt: Date;
   private _draftStatus?: DraftStatus;
+  private _currentCaptainId?: ParticipantId; // ドラフト中の現在のキャプテンID
 
   constructor(id: TournamentId, name: string, createdAt: Date, draftStatus: DraftStatus) {
     this._id = id;
@@ -41,6 +42,39 @@ export class Tournament {
     draftStatus: DraftStatus
   ): Tournament {
     return new Tournament(TournamentId.reconstruct(id), name, createdAt, draftStatus);
+  }
+
+  /**
+   * ドラフトを開始する
+   * ラウンド1、ターン1で開始し、アクティブな状態にする
+   */
+  startDraft(): void {
+    if (!this._draftStatus) {
+      this._draftStatus = DraftStatus.create();
+    }
+    this._draftStatus.start();
+    // ここでは簡易的な実装としてキャプテンIDはnullにしておく
+    // 実際の実装では最初のターンのキャプテンIDを設定する必要がある
+    this._currentCaptainId = undefined;
+  }
+
+  /**
+   * ドラフトをリセットする
+   * ドラフトに関連するデータをクリアする
+   */
+  reset(): void {
+    if (this._draftStatus) {
+      this._draftStatus.reset();
+    }
+    this._currentCaptainId = undefined;
+  }
+
+  /**
+   * 現在のドラフトターンのキャプテンIDを取得する
+   * 実際の実装ではドラフトの状態から適切なキャプテンを決定する
+   */
+  getCurrentCaptainId(): ParticipantId | undefined {
+    return this._currentCaptainId;
   }
 
   // Getters

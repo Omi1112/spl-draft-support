@@ -12,6 +12,17 @@ export const typeDefs = gql`
     drafts: [Draft!]
   }
 
+  type TournamentParticipant {
+    id: ID!
+    tournament: Tournament!
+    tournamentId: ID!
+    participant: Participant!
+    participantId: ID!
+    createdAt: String!
+    isCaptain: Boolean!
+    teamId: ID
+  }
+
   type Participant {
     id: ID!
     name: String!
@@ -19,6 +30,7 @@ export const typeDefs = gql`
     xp: Int!
     createdAt: String!
     team: Team
+    isCaptain: Boolean
   }
 
   type Team {
@@ -110,6 +122,11 @@ export const typeDefs = gql`
     tournamentId: ID!
   }
 
+  # ドラフト開始用の入力タイプを追加
+  input StartDraftInput {
+    tournamentId: ID!
+  }
+
   type TournamentParticipant {
     id: ID!
     tournamentId: ID!
@@ -132,5 +149,7 @@ export const typeDefs = gql`
     addParticipantToTournament(input: AddParticipantToTournamentInput!): TournamentParticipant!
     # ドラフトリセットミューテーションを追加
     resetDraft(input: ResetDraftInput!): Boolean!
+    # ドラフト開始ミューテーションを追加
+    startDraft(input: StartDraftInput!): Team!
   }
 `;

@@ -21,16 +21,11 @@ export function ParticipantList({
   processingCaptainId,
 }: ParticipantListProps) {
   // ID順にソートされた参加者リストを生成
-  const sortedParticipants = useMemo(() => {
-    // tournamentParticipantsからParticipantデータを抽出し、isCaptainフラグを追加
-    const participants = tournamentParticipants.map((tp) => ({
-      ...tp.Participant,
-      isCaptain: tp.isCaptain,
-    }));
-
-    return [...participants].sort((a, b) => {
+  const sortedParticipantData = useMemo(() => {
+    // TournamentParticipant経由でデータを参照する形に変更
+    return [...tournamentParticipants].sort((a, b) => {
       // ID文字列を比較して昇順にソート
-      return a.id.localeCompare(b.id);
+      return a.Participant.id.localeCompare(b.Participant.id);
     });
   }, [tournamentParticipants]);
 
@@ -46,7 +41,7 @@ export function ParticipantList({
         </button>
       </div>
 
-      {sortedParticipants.length === 0 ? (
+      {sortedParticipantData.length === 0 ? (
         <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-md text-center">
           <p className="text-gray-600 dark:text-gray-400">参加者はまだいません</p>
         </div>
@@ -71,8 +66,9 @@ export function ParticipantList({
                 </tr>
               </thead>
               <tbody>
-                {sortedParticipants.map((participant) => {
-                  const isCaptain = participant.isCaptain || false;
+                {sortedParticipantData.map((tp) => {
+                  const participant = tp.Participant;
+                  const isCaptain = tp.isCaptain;
                   const isProcessing = processingCaptainId === participant.id;
 
                   return (

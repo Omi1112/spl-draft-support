@@ -3,7 +3,7 @@ export class DraftStatus {
   private readonly _turn: number;
   private readonly _isActive: boolean;
 
-  constructor(round: number = 1, turn: number = 1, isActive: boolean = true) {
+  constructor(round: number, turn: number, isActive: boolean) {
     this._round = round;
     this._turn = turn;
     this._isActive = isActive;
@@ -14,7 +14,7 @@ export class DraftStatus {
    * @returns 新しいドラフトステータス
    */
   static create(): DraftStatus {
-    return new DraftStatus();
+    return new DraftStatus(0, 0, false);
   }
 
   /**
@@ -40,6 +40,10 @@ export class DraftStatus {
     return this._isActive;
   }
 
+  start(): DraftStatus {
+    return new DraftStatus(1, 1, true);
+  }
+
   nextTurn(): DraftStatus {
     return new DraftStatus(this._round, this._turn + 1, this.isActive);
   }
@@ -49,6 +53,6 @@ export class DraftStatus {
   }
 
   complete(): DraftStatus {
-    return new DraftStatus(this._round, this._turn, this.isActive);
+    return new DraftStatus(this._round, this._turn, false);
   }
 }
