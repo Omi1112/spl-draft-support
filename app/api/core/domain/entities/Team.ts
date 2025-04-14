@@ -13,6 +13,7 @@ export class Team {
   private _memberIds: ParticipantId[];
   private _tournamentId: TournamentId;
   private _createdAt: Date;
+  private _isDeleted: boolean;
 
   private constructor(
     id: TeamId,
@@ -20,7 +21,8 @@ export class Team {
     captainId: ParticipantId,
     tournamentId: TournamentId,
     memberIds: ParticipantId[] = [],
-    createdAt: Date
+    createdAt: Date,
+    isDeleted: boolean = false
   ) {
     this._id = id;
     this._name = name;
@@ -28,6 +30,7 @@ export class Team {
     this._tournamentId = tournamentId;
     this._memberIds = memberIds;
     this._createdAt = createdAt;
+    this._isDeleted = isDeleted;
   }
 
   /**
@@ -39,7 +42,7 @@ export class Team {
    */
   static create(name: string, captainId: ParticipantId, tournamentId: TournamentId): Team {
     const memberIds = [captainId]; // キャプテンは初期メンバーとして追加
-    return new Team(TeamId.create(), name, captainId, tournamentId, memberIds, new Date());
+    return new Team(TeamId.create(), name, captainId, tournamentId, memberIds, new Date(), false);
   }
 
   /**
@@ -50,6 +53,7 @@ export class Team {
    * @param tournamentId トーナメントID
    * @param memberIds メンバーID配列
    * @param createdAt 作成日時
+   * @param isDeleted 削除フラグ
    * @returns 復元されたチームエンティティ
    */
   static reconstruct(
@@ -58,7 +62,8 @@ export class Team {
     captainId: string,
     tournamentId: string,
     memberIds: string[] = [],
-    createdAt: string
+    createdAt: string,
+    isDeleted: boolean = false
   ): Team {
     return new Team(
       TeamId.reconstruct(id),
@@ -66,7 +71,8 @@ export class Team {
       ParticipantId.reconstruct(captainId),
       TournamentId.reconstruct(tournamentId),
       memberIds.map((mid) => ParticipantId.reconstruct(mid)),
-      new Date(createdAt)
+      new Date(createdAt),
+      isDeleted
     );
   }
 
@@ -93,6 +99,10 @@ export class Team {
 
   get tournamentId(): TournamentId {
     return this._tournamentId;
+  }
+
+  get isDeleted(): boolean {
+    return this._isDeleted;
   }
 
   /**
@@ -136,5 +146,12 @@ export class Team {
    */
   isMember(participantId: ParticipantId): boolean {
     return this._memberIds.some((id) => id.equals(participantId));
+  }
+
+  /**
+   * チームを削除する
+   */
+  delete(): void {
+    this._isDeleted = true;
   }
 }

@@ -1,8 +1,10 @@
-// filepath: /workspace/__tests__/api/core/domain/services/DraftDomainService.test.ts
 import { DraftDomainService } from '../../../../../app/api/core/domain/services/DraftDomainService';
-import { DraftDomainServiceImpl } from '../../../../../app/api/core/domain/services/DraftDomainService';
 import { TournamentId } from '../../../../../app/api/core/domain/valueObjects/TournamentId';
 import { TeamId } from '../../../../../app/api/core/domain/valueObjects/TeamId';
+import { ParticipantId } from '../../../../../app/api/core/domain/valueObjects/ParticipantId';
+import { Team } from '../../../../../app/api/core/domain/entities/Team';
+import { Tournament } from '../../../../../app/api/core/domain/entities/Tournament';
+import { TournamentParticipant } from '../../../../../app/api/core/domain/entities/TournamentParticipant';
 
 // モックリポジトリの作成
 const mockDraftRepository = {
@@ -44,18 +46,22 @@ const mockTeamMemberRepository = {
   deleteByTeamId: jest.fn(),
 };
 
+const mockTournamentRepository = {
+  findById: jest.fn(),
+  save: jest.fn(),
+};
+
 describe('DraftDomainService', () => {
   let draftDomainService: DraftDomainService;
 
   // 各テスト前に初期化
   beforeEach(() => {
     jest.clearAllMocks();
-    draftDomainService = new DraftDomainServiceImpl(
+    draftDomainService = new DraftDomainService(
       mockDraftRepository,
       mockTeamRepository,
       mockTournamentParticipantRepository,
-      mockDraftStatusRepository,
-      mockTeamMemberRepository
+      mockTournamentRepository
     );
   });
 
@@ -148,6 +154,112 @@ describe('DraftDomainService', () => {
       expect(mockDraftRepository.deleteByTournamentId).toHaveBeenCalledWith(tournamentId);
       expect(mockDraftStatusRepository.deleteByTournamentId).toHaveBeenCalledWith(tournamentId);
       expect(mockDraftStatusRepository.createInitialStatus).toHaveBeenCalledWith(tournamentId);
+    });
+  });
+
+  describe('startDraft', () => {
+    it('正常にドラフトを開始できること', async () => {
+      // テスト名を修正
+      // テストデータ
+      const tournamentId = new TournamentId('tournament-start-1');
+      const captainId1 = ParticipantId.reconstruct('captain-1');
+      const captainId2 = ParticipantId.reconstruct('captain-2');
+      // Tournament.reconstruct の引数を実際のコンストラクタに合わせて修正
+      const mockTournament = Tournament.reconstruct(
+        tournamentId.value,
+        'Test Tournament',
+        'ongoing',
+        new Date().toISOString(),
+        1, // draftRound
+        1, // draftTurn
+        false // draftIsActive
+      );
+      // TournamentParticipant.reconstruct の引数を実際のコンストラクタに合わせて修正
+      const mockParticipants = [
+        TournamentParticipant.reconstruct(
+          'tp-1',
+          tournamentId.value,
+          captainId1.value,
+          true, // isCaptain
+          null, // teamId
+          new Date().toISOString()
+        ),
+        TournamentParticipant.reconstruct(
+          'tp-2',
+          tournamentId.value,
+          captainId2.value,
+          true, // isCaptain
+          null, // teamId
+          new Date().toISOString()
+        ),
+      ];
+      const createdTeam1 = Team.create('Team Captain 1', captainId1, tournamentId);
+      const createdTeam2 = Team.create('Team Captain 2', captainId2, tournamentId);
+
+      // モックの設定
+      mockTournamentRepository.findById.mockResolvedValue(mockTournament);
+      mockTournamentParticipantRepository.findByTournamentId.mockResolvedValue(mockParticipants);
+      mockTeamRepository.findByTournamentIdAndCaptainId
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+
+      // save のモックは戻り値を検証する必要がなくなったが、呼び出しは確認
+      mockTeamRepository.save
+        .mockResolvedValueOnce(createdTeam1) // PrismaTeamRepository.save は依然として Team を返す
+        .mockResolvedValueOnce(createdTeam2);
+
+      mockTournamentParticipantRepository.save.mockResolvedValue(undefined);
+      mockTournamentRepository.save.mockResolvedValue(undefined);
+
+      // 実行 & 検証 (戻り値がないことを確認)
+      await expect(draftDomainService.startDraft(tournamentId)).resolves.toBeUndefined();
+
+      // 検証 (呼び出し回数など)
+      expect(mockTournamentRepository.findById).toHaveBeenCalledWith(tournamentId);
+      expect(mockTournamentParticipantRepository.findByTournamentId).toHaveBeenCalledWith(
+        tournamentId
+      );
+      expect(mockTeamRepository.findByTournamentIdAndCaptainId).toHaveBeenCalledTimes(2);
+      expect(mockTeamRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockTournamentParticipantRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockTournamentRepository.save).toHaveBeenCalledTimes(1);
+
+      // トーナメントのドラフト状態が更新されているか
+      expect(mockTournamentRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          _draftIsActive: true,
+          _draftRound: 1,
+          _draftTurn: 1,
+        })
+      );
+    });
+
+    it('トーナメントが見つからない場合にエラーをスローすること', async () => {
+      const tournamentId = new TournamentId('non-existent-tournament');
+      mockTournamentRepository.findById.mockResolvedValue(null);
+
+      await expect(draftDomainService.startDraft(tournamentId)).rejects.toThrow(
+        'トーナメントが見つかりません'
+      );
+    });
+
+    it('キャプテンが見つからない場合にエラーをスローすること', async () => {
+      const tournamentId = new TournamentId('tournament-no-captains');
+      const mockTournament = Tournament.reconstruct(
+        tournamentId.value,
+        'Test Tournament',
+        'ongoing',
+        new Date().toISOString(),
+        1, // draftRound
+        1, // draftTurn
+        false // draftIsActive
+      );
+      mockTournamentRepository.findById.mockResolvedValue(mockTournament);
+      mockTournamentParticipantRepository.findByTournamentId.mockResolvedValue([]); // キャプテンがいない
+
+      await expect(draftDomainService.startDraft(tournamentId)).rejects.toThrow(
+        'トーナメントにキャプテンが登録されていません'
+      );
     });
   });
 });

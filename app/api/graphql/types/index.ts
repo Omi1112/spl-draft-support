@@ -150,6 +150,6 @@ export const typeDefs = gql`
     # ドラフトリセットミューテーションを追加
     resetDraft(input: ResetDraftInput!): Boolean!
     # ドラフト開始ミューテーションを追加
-    startDraft(input: StartDraftInput!): Team!
+    startDraft(input: StartDraftInput!): Boolean!
   }
 `;

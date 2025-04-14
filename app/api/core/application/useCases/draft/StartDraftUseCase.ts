@@ -1,6 +1,5 @@
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 import { DraftDomainService } from '../../../domain/services/DraftDomainService';
-import { Team } from '../../../domain/entities/Team';
 
 /**
  * ドラフト開始のユースケース
@@ -11,11 +10,11 @@ export class StartDraftUseCase {
   /**
    * ドラフトを開始する
    * @param tournamentId 開始対象のトーナメントID
-   * @returns 開始したチームの情報
+   * @returns Promise<void> - 成功時は void、失敗時は例外をスロー
    */
-  async execute(tournamentId: string): Promise<Team> {
+  async execute(tournamentId: string): Promise<void> {
     try {
-      return await this.draftDomainService.startDraft(new TournamentId(tournamentId));
+      await this.draftDomainService.startDraft(new TournamentId(tournamentId));
     } catch (error) {
       console.error('ドラフト開始のエラー:', error);
       throw new Error('ドラフトの開始に失敗しました');

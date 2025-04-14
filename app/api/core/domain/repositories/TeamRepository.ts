@@ -8,7 +8,7 @@ export interface TeamRepository {
   findByTournamentId(tournamentId: TournamentId): Promise<Team[]>;
   findByCaptainId(captainId: ParticipantId): Promise<Team | null>;
   save(team: Team): Promise<Team>;
-  delete(id: TeamId): Promise<void>;
+  delete(team: Team): Promise<void>; // 引数を TeamId から Team に変更
 
   /**
    * トーナメントIDに紐づくすべてのチームを削除

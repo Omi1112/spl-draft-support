@@ -129,12 +129,15 @@ export const draftResolvers = {
         const { tournamentId } = input;
 
         // 依存性注入されたStartDraftUseCaseを使用してドラフトを開始
-        const team = await startDraftUseCase.execute(tournamentId);
+        // 戻り値は不要になった
+        await startDraftUseCase.execute(tournamentId);
 
         console.log(`トーナメントID ${tournamentId} のドラフトを開始しました`);
-        return team;
+        // 成功したら true を返す
+        return true;
       } catch (error) {
         console.error('ドラフト開始エラー:', error);
+        // エラー時は GraphQL がエラーをハンドルする
         throw new Error('ドラフトの開始に失敗しました');
       }
     },

@@ -1,10 +1,9 @@
-// filepath: /workspace/app/api/core/domain/services/DraftDomainServiceImpl.ts
 import { TournamentId } from '../valueObjects/TournamentId';
 import { DraftRepository } from '../repositories/DraftRepository';
 import { TeamRepository } from '../repositories/TeamRepository';
 import { TournamentParticipantRepository } from '../repositories/TournamentParticipantRepository';
 import { TournamentRepository } from '../repositories/TournamentRepository';
-import { Team } from '../entities/Team';
+import { Team } from '../entities/Team'; // Team のインポートは startDraft 内で使うため残す
 
 /**
  * ドラフトに関するドメインサービスの実装
@@ -30,17 +29,24 @@ export class DraftDomainService {
         throw new Error('トーナメントが見つかりません');
       }
 
+      // 2. トーナメントのチームを取得
+      const teams = await this.teamRepository.findByTournamentId(tournamentId);
+
+      // 3. 各チームに削除フラグを設定
+      teams.forEach((team) => team.delete());
+
+      // 4. 各チームを物理削除
+      for (const team of teams) {
+        await this.teamRepository.delete(team); // team.id ではなく team を渡す
+      }
+
+      // 5. トーナメントをリセット
       tournament.reset();
       await this.tournamentRepository.save(tournament);
 
-      // 3. チームを削除
-      await this.teamRepository.deleteByTournamentId(tournamentId);
-
-      // 4. TournamentParticipantの参照をクリア
-      await this.tournamentParticipantRepository.clearTeamReferences(tournamentId);
-
-      // 5. ドラフト履歴を削除
+      // 6. ドラフト履歴を削除
       await this.draftRepository.deleteByTournamentId(tournamentId);
+
       return true;
     } catch (error) {
       console.error('ドラフトリセットエラー:', error);
@@ -51,9 +57,10 @@ export class DraftDomainService {
   /**
    * ドラフトを開始する
    * @param tournamentId 開始対象のトーナメントID
-   * @returns 作成されたチーム情報の配列
+   * @returns Promise<void> - 成功時は void、失敗時は例外をスロー
    */
-  async startDraft(tournamentId: TournamentId): Promise<any> {
+  async startDraft(tournamentId: TournamentId): Promise<void> {
+    // 戻り値を Promise<void> に変更
     try {
       // 1. 対象トーナメントを取得
       const tournament = await this.tournamentRepository.findById(tournamentId);
@@ -71,7 +78,6 @@ export class DraftDomainService {
       }
 
       // 3. 各キャプテンごとにチームを作成（既に存在する場合は作成しない）
-      const createdTeams = [];
       for (const captain of captains) {
         // チームが既に存在するかチェック
         let team = await this.teamRepository.findByTournamentIdAndCaptainId(
@@ -84,16 +90,12 @@ export class DraftDomainService {
           // キャプテンの名前をベースにチーム名を作成
           const teamName = `${captain.participantId.value}のチーム`;
           team = Team.create(teamName, captain.participantId, tournamentId);
+          // save の戻り値を受け取らないように変更
           await this.teamRepository.save(team);
 
           // キャプテンにチームIDを割り当て
           captain.assignTeam(team.id);
           await this.tournamentParticipantRepository.save(captain);
-
-          createdTeams.push(team);
-        } else {
-          // 既存のチームの場合も結果に含める
-          createdTeams.push(team);
         }
       }
 
@@ -101,7 +103,7 @@ export class DraftDomainService {
       tournament.startDraft();
       await this.tournamentRepository.save(tournament);
 
-      return createdTeams;
+      // 戻り値を削除
     } catch (error) {
       console.error('ドラフト開始エラー:', error);
       throw new Error('ドラフトの開始に失敗しました');

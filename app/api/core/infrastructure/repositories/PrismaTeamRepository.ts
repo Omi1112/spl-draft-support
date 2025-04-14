@@ -16,13 +16,13 @@ export class PrismaTeamRepository implements TeamRepository {
       return null;
     }
 
-    return new Team(
-      new TeamId(team.id),
+    return Team.reconstruct(
+      team.id,
       team.name,
-      new ParticipantId(team.captainId),
-      new TournamentId(team.tournamentId),
-      team.members.map((m) => new ParticipantId(m.id)),
-      team.createdAt
+      team.captainId,
+      team.tournamentId,
+      team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
+      team.createdAt.toISOString()
     );
   }
 
@@ -32,16 +32,15 @@ export class PrismaTeamRepository implements TeamRepository {
       include: { members: true },
     });
 
-    return teams.map(
-      (team) =>
-        new Team(
-          new TeamId(team.id),
-          team.name,
-          new ParticipantId(team.captainId),
-          new TournamentId(team.tournamentId),
-          team.members.map((m) => new ParticipantId(m.id)),
-          team.createdAt
-        )
+    return teams.map((team) =>
+      Team.reconstruct(
+        team.id,
+        team.name,
+        team.captainId,
+        team.tournamentId,
+        team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
+        team.createdAt.toISOString()
+      )
     );
   }
 
@@ -55,19 +54,24 @@ export class PrismaTeamRepository implements TeamRepository {
       return null;
     }
 
-    return new Team(
-      new TeamId(team.id),
+    return Team.reconstruct(
+      team.id,
       team.name,
-      new ParticipantId(team.captainId),
-      new TournamentId(team.tournamentId),
-      team.members.map((m) => new ParticipantId(m.id)),
-      team.createdAt
+      team.captainId,
+      team.tournamentId,
+      team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
+      team.createdAt.toISOString()
     );
   }
 
   async save(team: Team): Promise<Team> {
+    // チームが削除済みの場合は例外をスロー
+    if (team.isDeleted) {
+      throw new Error(`削除済みのチームは保存できません。チームID: ${team.id.value}`);
+    }
+
     // チーム情報の更新または作成
-    await prisma.team.upsert({
+    const savedPrismaTeam = await prisma.team.upsert({
       where: { id: team.id.value },
       update: {
         name: team.name,
@@ -80,6 +84,7 @@ export class PrismaTeamRepository implements TeamRepository {
         captainId: team.captainId.value,
         tournamentId: team.tournamentId.value,
       },
+      include: { members: true }, // 保存後にメンバー情報も含めて取得
     });
 
     // チームメンバーの関連付け - 既存のメンバーをリセットして再設定
@@ -100,20 +105,41 @@ export class PrismaTeamRepository implements TeamRepository {
       });
     }
 
-    return team;
+    // 保存/更新されたデータを基にTeamエンティティを再構築して返す
+    const updatedTeamMembers = await prisma.teamMember.findMany({
+      where: { teamId: savedPrismaTeam.id },
+    });
+
+    return Team.reconstruct(
+      savedPrismaTeam.id,
+      savedPrismaTeam.name,
+      savedPrismaTeam.captainId,
+      savedPrismaTeam.tournamentId,
+      updatedTeamMembers.map((m) => m.participantId),
+      savedPrismaTeam.createdAt.toISOString()
+      // isDeleted はデフォルトで false
+    );
   }
 
-  async delete(id: TeamId): Promise<void> {
-    // まずチームメンバーの関連付けを解除
+  async delete(team: Team): Promise<void> {
+    // 引数を Team に変更
+    // 削除フラグが立っていない場合はエラー
+    if (!team.isDeleted) {
+      throw new Error(`チームID ${team.id.value} は削除対象としてマークされていません。`);
+    }
+
+    // チームメンバーの削除
     await prisma.teamMember.deleteMany({
       where: {
-        teamId: id.value,
+        teamId: team.id.value, // team.id を使用
       },
     });
 
-    // チームを削除
+    // チームの削除
     await prisma.team.delete({
-      where: { id: id.value },
+      where: {
+        id: team.id.value, // team.id を使用
+      },
     });
   }
 
@@ -122,20 +148,37 @@ export class PrismaTeamRepository implements TeamRepository {
    * @param tournamentId 対象のトーナメントID
    */
   async deleteByTournamentId(tournamentId: TournamentId): Promise<void> {
-    // 特定のトーナメントに属するすべてのチームを削除
-    // このメソッドは、DraftDomainServiceで使用されるため、
-    // チームメンバーの削除は別途TeamMemberRepositoryで行う
-    await prisma.team.deleteMany({
-      where: { tournamentId: tournamentId.value },
-    });
+    try {
+      // トーナメントに関連するすべてのチームを取得
+      const teams = await prisma.team.findMany({
+        where: { tournamentId: tournamentId.value },
+        select: { id: true },
+      });
+
+      // チームIDの配列を取得
+      const teamIds = teams.map((team) => team.id);
+
+      if (teamIds.length > 0) {
+        // 1. まず、関連するチームメンバーを削除（外部キー制約を考慮）
+        await prisma.teamMember.deleteMany({
+          where: {
+            teamId: {
+              in: teamIds,
+            },
+          },
+        });
+      }
+
+      // 2. チームを削除
+      await prisma.team.deleteMany({
+        where: { tournamentId: tournamentId.value },
+      });
+    } catch (error) {
+      console.error('トーナメント関連チーム削除エラー:', error);
+      throw error;
+    }
   }
 
-  /**
-   * トーナメントIDとキャプテンIDに紐づくチームを検索
-   * @param tournamentId 対象のトーナメントID
-   * @param captainId 対象のキャプテンID (省略可)
-   * @returns 見つかったチーム、見つからない場合はnull
-   */
   async findByTournamentIdAndCaptainId(
     tournamentId: TournamentId,
     captainId?: ParticipantId
@@ -152,13 +195,13 @@ export class PrismaTeamRepository implements TeamRepository {
         return null;
       }
 
-      return new Team(
-        new TeamId(team.id),
+      return Team.reconstruct(
+        team.id,
         team.name,
-        new ParticipantId(team.captainId),
-        new TournamentId(team.tournamentId),
-        team.members.map((m) => new ParticipantId(m.id)),
-        team.createdAt
+        team.captainId,
+        team.tournamentId,
+        team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
+        team.createdAt.toISOString()
       );
     }
 
@@ -175,11 +218,13 @@ export class PrismaTeamRepository implements TeamRepository {
       return null;
     }
 
-    return new Team(
-      new TeamId(team.id),
+    return Team.reconstruct(
+      team.id,
       team.name,
-      new ParticipantId(team.captainId),
-      team.members.map((m) => new ParticipantId(m.id))
+      team.captainId,
+      team.tournamentId, // tournamentIdを追加
+      team.members.map((m) => m.participantId) // TeamMemberからparticipantIdを取得
+      // createdAt は reconstruct のデフォルト引数で Date 型になるため不要
     );
   }
 }
