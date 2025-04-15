@@ -11,6 +11,7 @@
     "lint:fix": "next lint --fix",
     "lint:unused-imports": "next lint --fix --dir=. --rule 'unused-imports/no-unused-imports: error'",
     "postinstall": "prisma generate",
+    "prepare": "husky install",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
