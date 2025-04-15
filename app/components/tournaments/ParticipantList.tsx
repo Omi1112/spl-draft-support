@@ -24,10 +24,11 @@ export function ParticipantList({
   const safeParticipants = Array.isArray(tournamentParticipants) ? tournamentParticipants : [];
   // ID順にソートされた参加者リストを生成
   const sortedParticipantData = useMemo(() => {
-    // TournamentParticipant経由でデータを参照する形に変更
+    // null/undefinedガードを追加
     return [...safeParticipants].sort((a, b) => {
-      // ID文字列を比較して昇順にソート
-      return a.Participant.id.localeCompare(b.Participant.id);
+      const aId = a.Participant && a.Participant.id ? a.Participant.id : '';
+      const bId = b.Participant && b.Participant.id ? b.Participant.id : '';
+      return aId.localeCompare(bId);
     });
   }, [safeParticipants]);
 
@@ -69,7 +70,12 @@ export function ParticipantList({
               </thead>
               <tbody>
                 {sortedParticipantData.map((tp) => {
+                  // Participantがundefinedの場合のガードを追加
                   const participant = tp.Participant;
+                  if (!participant) {
+                    // 参加者情報が不正な場合はスキップ
+                    return null;
+                  }
                   const isCaptain = tp.isCaptain;
                   const isProcessing = processingCaptainId === participant.id;
 
