@@ -1,4 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
+
+import { useCaptainManagement } from '../../../../app/tournaments/[id]/hooks/useCaptainManagement';
+import { useParticipantForm } from '../../../../app/tournaments/[id]/hooks/useParticipantForm';
+import { useTournamentData } from '../../../../app/tournaments/[id]/hooks/useTournamentData';
 import { useTournamentDetails } from '../../../../app/tournaments/[id]/hooks/useTournamentDetails';
 
 // 依存しているカスタムフックをモック
@@ -13,11 +17,6 @@ jest.mock('../../../../app/tournaments/[id]/hooks/useParticipantForm', () => ({
 jest.mock('../../../../app/tournaments/[id]/hooks/useCaptainManagement', () => ({
   useCaptainManagement: jest.fn(),
 }));
-
-// 依存しているフックのインポート
-import { useTournamentData } from '../../../../app/tournaments/[id]/hooks/useTournamentData';
-import { useParticipantForm } from '../../../../app/tournaments/[id]/hooks/useParticipantForm';
-import { useCaptainManagement } from '../../../../app/tournaments/[id]/hooks/useCaptainManagement';
 
 // モック関数の型アサーション
 const mockUseTournamentData = useTournamentData as jest.Mock;
@@ -72,12 +71,12 @@ describe('useTournamentDetails', () => {
       handleCaptainToggle: expect.any(Function),
       isProcessingCaptain: false,
       // ドラフトリセット関連のプロパティを追加
-      isResetting: undefined,
-      showConfirmDialog: undefined,
-      resetError: undefined,
-      handleResetClick: undefined,
-      handleConfirmReset: undefined,
-      handleCancelReset: undefined,
+      isResetting: false,
+      showConfirmDialog: false,
+      resetError: null,
+      handleResetClick: expect.any(Function),
+      handleConfirmReset: expect.any(Function),
+      handleCancelReset: expect.any(Function),
     });
 
     // 各フックが正しいパラメータで呼ばれたか検証

@@ -1,7 +1,8 @@
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import TournamentDetails from '../../../app/tournaments/[id]/page';
+
 import { useTournamentDetails } from '../../../app/tournaments/[id]/hooks/useTournamentDetails';
+import TournamentDetails from '../../../app/tournaments/[id]/page';
 
 // Next.jsのuseParamsフックをモック
 jest.mock('next/navigation', () => ({
@@ -86,6 +87,15 @@ describe('TournamentDetails', () => {
     ],
   };
 
+  // テスト用のtournamentParticipantsを追加
+  const mockTournamentWithParticipants = {
+    ...mockTournament,
+    tournamentParticipants: [
+      { id: 'tp1', participant: mockTournament.participants[0] },
+      { id: 'tp2', participant: mockTournament.participants[1] },
+    ],
+  };
+
   // モックの関数
   const mockSetShowModal = jest.fn();
   const mockHandleCaptainToggle = jest.fn();
@@ -95,7 +105,7 @@ describe('TournamentDetails', () => {
   beforeEach(() => {
     // デフォルトの成功ケースをモック
     (useTournamentDetails as jest.Mock).mockReturnValue({
-      tournament: mockTournament,
+      tournament: mockTournamentWithParticipants,
       loading: false,
       error: null,
       showModal: false,
