@@ -60,10 +60,6 @@ export class AddParticipantToTournamentUseCase {
     // 参加者データを保存
     await this.participantRepository.save(participant);
 
-    // トーナメントに参加者を追加
-    tournament.addParticipant(participant);
-    await this.tournamentRepository.save(tournament);
-
     // TournamentParticipantエンティティを作成して保存する
     const tournamentParticipant = TournamentParticipant.create(
       tournamentId,

@@ -3,7 +3,6 @@ import { TournamentParticipant } from '../../../domain/entities/TournamentPartic
 import { ParticipantRepository } from '../../../domain/repositories/ParticipantRepository';
 import { TournamentParticipantRepository } from '../../../domain/repositories/TournamentParticipantRepository';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
-import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 import { CreateParticipantDTO, ParticipantDTO } from '../../interfaces/DTOs';
 
@@ -22,10 +21,6 @@ export class AddParticipantUseCase {
     if (!tournament) {
       return null;
     }
-
-    // 参加者エンティティを作成
-    const id = `participant-${Date.now()}`;
-    const participantId = new ParticipantId(id);
 
     // privateコンストラクタではなく、createメソッドを使用
     const participant = Participant.create(dto.name, dto.weapon, dto.xp, dto.isCaptain || false);

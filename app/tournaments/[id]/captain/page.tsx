@@ -4,13 +4,10 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-// 型定義とAPIクライアント関数のインポート
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 
 import { fetchTournamentCaptains } from './api';
-
-// 新しく作成したコンポーネントのインポート
 import { CaptainCard } from './components/CaptainCard';
 import { TournamentWithCaptains } from './types';
 

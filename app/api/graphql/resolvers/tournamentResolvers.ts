@@ -68,13 +68,6 @@ interface Participant {
   isCaptain: boolean;
 }
 
-interface Team {
-  id: { value: string } | string;
-  name: string;
-  captainId: { value: string } | string;
-  createdAt?: Date | string;
-}
-
 // 型ガード関数
 const hasValueProperty = (obj: unknown): obj is { value: string } => {
   return obj !== null && typeof obj === 'object' && 'value' in obj;

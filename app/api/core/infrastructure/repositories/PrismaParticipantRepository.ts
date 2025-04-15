@@ -6,12 +6,17 @@ import { prisma } from '../persistence/prisma/client';
 
 export class PrismaParticipantRepository implements ParticipantRepository {
   /**
-   * プリズマのデータをドメインエンティティに変換する
-   * @param participantData プリズマから取得した参加者データ
+   * Prismaのデータをドメインエンティティに変換する
+   * @param participantData Prismaから取得した参加者データ
    * @returns ドメインエンティティ
    */
-  private mapToDomainEntity(participantData: any): Participant {
-    // reconstruct メソッドでエンティティを作成
+  private mapToDomainEntity(participantData: {
+    id: string;
+    name: string;
+    weapon: string;
+    xp: number;
+    createdAt: Date;
+  }): Participant {
     return Participant.reconstruct(
       participantData.id,
       participantData.name,
@@ -34,11 +39,9 @@ export class PrismaParticipantRepository implements ParticipantRepository {
         participations: true,
       },
     });
-
     if (!participant) {
       return null;
     }
-
     return this.mapToDomainEntity(participant);
   }
 

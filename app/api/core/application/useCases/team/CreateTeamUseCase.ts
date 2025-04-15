@@ -3,7 +3,6 @@ import { ParticipantRepository } from '../../../domain/repositories/ParticipantR
 import { TeamRepository } from '../../../domain/repositories/TeamRepository';
 import { TournamentRepository } from '../../../domain/repositories/TournamentRepository';
 import { ParticipantId } from '../../../domain/valueObjects/ParticipantId';
-import { TeamId } from '../../../domain/valueObjects/TeamId';
 import { TournamentId } from '../../../domain/valueObjects/TournamentId';
 import { CreateTeamDTO, TeamDTO } from '../../interfaces/DTOs';
 
@@ -28,10 +27,6 @@ export class CreateTeamUseCase {
     if (!captain || !captain.isCaptain) {
       return null;
     }
-
-    // チームエンティティの作成
-    const id = `team-${Date.now()}`;
-    const teamId = new TeamId(id);
 
     const team = Team.create(dto.name, captainId, tournamentId);
 

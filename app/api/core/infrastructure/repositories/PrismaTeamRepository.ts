@@ -6,24 +6,38 @@ import { TournamentId } from '../../domain/valueObjects/TournamentId';
 import { prisma } from '../persistence/prisma/client';
 
 export class PrismaTeamRepository implements TeamRepository {
+  /**
+   * Prismaのデータをドメインエンティティに変換する
+   * @param data PrismaのTeamデータ
+   * @returns Teamエンティティ
+   */
+  private mapToDomainEntity(data: {
+    id: string;
+    name: string;
+    captainId: string;
+    tournamentId: string;
+    members: { participantId: string }[];
+    createdAt: Date | string;
+  }): Team {
+    return Team.reconstruct(
+      data.id,
+      data.name,
+      data.captainId,
+      data.tournamentId,
+      data.members.map((m) => m.participantId),
+      typeof data.createdAt === 'string' ? data.createdAt : data.createdAt.toISOString()
+    );
+  }
+
   async findById(id: TeamId): Promise<Team | null> {
     const team = await prisma.team.findUnique({
       where: { id: id.value },
       include: { members: true },
     });
-
     if (!team) {
       return null;
     }
-
-    return Team.reconstruct(
-      team.id,
-      team.name,
-      team.captainId,
-      team.tournamentId,
-      team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
-      team.createdAt.toISOString()
-    );
+    return this.mapToDomainEntity(team);
   }
 
   async findByTournamentId(tournamentId: TournamentId): Promise<Team[]> {
@@ -31,17 +45,7 @@ export class PrismaTeamRepository implements TeamRepository {
       where: { tournamentId: tournamentId.value },
       include: { members: true },
     });
-
-    return teams.map((team) =>
-      Team.reconstruct(
-        team.id,
-        team.name,
-        team.captainId,
-        team.tournamentId,
-        team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
-        team.createdAt.toISOString()
-      )
-    );
+    return teams.map((team) => this.mapToDomainEntity(team));
   }
 
   async findByCaptainId(captainId: ParticipantId): Promise<Team | null> {
@@ -49,19 +53,10 @@ export class PrismaTeamRepository implements TeamRepository {
       where: { captainId: captainId.value },
       include: { members: true },
     });
-
     if (!team) {
       return null;
     }
-
-    return Team.reconstruct(
-      team.id,
-      team.name,
-      team.captainId,
-      team.tournamentId,
-      team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
-      team.createdAt.toISOString()
-    );
+    return this.mapToDomainEntity(team);
   }
 
   async save(team: Team): Promise<Team> {
@@ -110,15 +105,11 @@ export class PrismaTeamRepository implements TeamRepository {
       where: { teamId: savedPrismaTeam.id },
     });
 
-    return Team.reconstruct(
-      savedPrismaTeam.id,
-      savedPrismaTeam.name,
-      savedPrismaTeam.captainId,
-      savedPrismaTeam.tournamentId,
-      updatedTeamMembers.map((m) => m.participantId),
-      savedPrismaTeam.createdAt.toISOString()
-      // isDeleted はデフォルトで false
-    );
+    return this.mapToDomainEntity({
+      ...savedPrismaTeam,
+      members: updatedTeamMembers,
+      createdAt: savedPrismaTeam.createdAt,
+    });
   }
 
   async delete(team: Team): Promise<void> {
@@ -195,14 +186,7 @@ export class PrismaTeamRepository implements TeamRepository {
         return null;
       }
 
-      return Team.reconstruct(
-        team.id,
-        team.name,
-        team.captainId,
-        team.tournamentId,
-        team.members.map((m) => m.participantId), // TeamMemberからparticipantIdを取得
-        team.createdAt.toISOString()
-      );
+      return this.mapToDomainEntity(team);
     }
 
     // キャプテンIDが指定されている場合は、トーナメントIDとキャプテンIDの両方で検索
@@ -218,13 +202,6 @@ export class PrismaTeamRepository implements TeamRepository {
       return null;
     }
 
-    return Team.reconstruct(
-      team.id,
-      team.name,
-      team.captainId,
-      team.tournamentId,
-      team.members.map((m) => m.participantId),
-      team.createdAt.toISOString()
-    );
+    return this.mapToDomainEntity(team);
   }
 }

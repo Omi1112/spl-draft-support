@@ -1,6 +1,7 @@
 import { DraftStatus } from '../valueObjects/DraftStatus';
 import { TournamentId } from '../valueObjects/TournamentId';
 
+
 /**
  * トーナメントエンティティ
  * 大会の基本情報とドラフト状態を管理します
@@ -68,16 +69,6 @@ export class Tournament {
    */
   updateDraftStatus(draftStatus: DraftStatus): void {
     this._draftStatus = draftStatus;
-  }
-
-  /**
-   * 参加者をトーナメントに追加する
-   * 注: 実際のTournament-Participant関連付けはリポジトリレイヤーで処理
-   * @param participant 追加する参加者
-   */
-  addParticipant(participant: any): void {
-    // このメソッドは型チェックを通過させるために存在
-    // 実際の関連付けはTournamentParticipantRepositoryで行われる
   }
 
   // Getters

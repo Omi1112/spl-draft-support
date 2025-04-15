@@ -15,18 +15,18 @@ export class PrismaTournamentRepository implements TournamentRepository {
 
   /**
    * プリズマのデータをドメインエンティティに変換する
-   * @param tournamentData プリズマから取得したトーナメントデータ
+   * @param tournamentData Prismaから取得したトーナメントデータ
    * @returns ドメインエンティティ
    */
-  private mapToDomainEntity(tournamentData: any): Tournament {
+  private mapToDomainEntity(tournamentData: { [key: string]: unknown }): Tournament {
     return Tournament.reconstruct(
-      tournamentData.id,
-      tournamentData.name,
-      tournamentData.createdAt,
+      tournamentData.id as string,
+      tournamentData.name as string,
+      tournamentData.createdAt as Date,
       DraftStatus.reconstruct(
-        tournamentData.draftStatus.round,
-        tournamentData.draftStatus.turn,
-        tournamentData.draftStatus.isActive
+        (tournamentData.draftStatus as { round: number }).round,
+        (tournamentData.draftStatus as { turn: number }).turn,
+        (tournamentData.draftStatus as { isActive: boolean }).isActive
       )
     );
   }

@@ -1,4 +1,3 @@
-import { Draft as PrismaDraft, Participant } from '@prisma/client';
 
 import { Draft } from '../../domain/entities/Draft';
 import { DraftRepository } from '../../domain/repositories/DraftRepository';
@@ -149,25 +148,29 @@ export class PrismaDraftRepository implements DraftRepository {
   }
 
   /**
-   * Prismaモデルをドメインエンティティに変換
-   * @param prismaModel
-   * @returns
+   * Prismaのデータをドメインエンティティに変換する
+   * @param draft PrismaのDraftデータ
+   * @returns Draftエンティティ
    */
-  private toDomainEntity(
-    prismaModel: PrismaDraft & {
-      captain?: Participant;
-      participant?: Participant;
-    }
-  ): Draft {
+  private toDomainEntity(draft: {
+    id: string;
+    tournamentId: string;
+    captainId: string;
+    participantId: string;
+    round: number;
+    turn: number;
+    status: string;
+    createdAt: Date;
+  }): Draft {
     return Draft.reconstruct(
-      prismaModel.id,
-      prismaModel.tournamentId,
-      prismaModel.captainId,
-      prismaModel.participantId,
-      prismaModel.round,
-      prismaModel.turn,
-      prismaModel.status,
-      prismaModel.createdAt
+      draft.id,
+      draft.tournamentId,
+      draft.captainId,
+      draft.participantId,
+      draft.round,
+      draft.turn,
+      draft.status,
+      draft.createdAt
     );
   }
 }
