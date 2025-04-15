@@ -65,18 +65,6 @@ export async function fetchTournament(id: string): Promise<Tournament> {
   // デバッグログを追加
   console.log('GraphQL Response:', JSON.stringify(result, null, 2));
 
-  // tournamentParticipantsのデータを確認
-  if (result.data?.tournament?.tournamentParticipants) {
-    console.log(
-      'Tournament participants:',
-      result.data.tournament.tournamentParticipants.map((tp: TournamentParticipant) => ({
-        participantId: tp.Participant.id,
-        participantName: tp.Participant.name,
-        isCaptain: tp.isCaptain,
-      }))
-    );
-  }
-
   // エラーチェックを追加
   if (result.errors) {
     console.error('GraphQL errors:', result.errors);

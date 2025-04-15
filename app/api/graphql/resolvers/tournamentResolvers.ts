@@ -2,6 +2,7 @@ import { CreateTournamentDTO } from '../../core/application/interfaces/DTOs';
 import { GetTeamsByTournamentIdUseCase } from '../../core/application/useCases/team/GetTeamsByTournamentIdUseCase';
 import { CreateTournamentUseCase } from '../../core/application/useCases/tournament/CreateTournamentUseCase';
 import { GetTournamentParticipantsByTournamentIdUseCase } from '../../core/application/useCases/tournament/GetTournamentParticipantsByTournamentIdUseCase';
+import { TournamentParticipantDTO } from '../../core/application/useCases/tournament/GetTournamentParticipantsByTournamentIdUseCase';
 import { GetTournamentsUseCase } from '../../core/application/useCases/tournament/GetTournamentsUseCase';
 import { GetTournamentUseCase } from '../../core/application/useCases/tournament/GetTournamentUseCase';
 import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
@@ -167,9 +168,8 @@ export const tournamentResolvers = {
         if (parent.participants) return parent.participants;
 
         // ユースケースを使用してトーナメント参加者を取得
-        const tournamentParticipants = await getTournamentParticipantsByTournamentIdUseCase.execute(
-          parent.id
-        );
+        const tournamentParticipants: TournamentParticipantDTO[] =
+          await getTournamentParticipantsByTournamentIdUseCase.execute(parent.id);
 
         // トーナメント参加者が見つからない場合は空配列を返す
         if (!tournamentParticipants || tournamentParticipants.length === 0) {
@@ -178,38 +178,27 @@ export const tournamentResolvers = {
 
         // GraphQLスキーマに合わせた形式に変換
         return tournamentParticipants
-          .map(
-            (tp: {
-              id: string;
-              name: string;
-              captainId: string;
-              createdAt: Date | string;
-              members?: Participant[];
-              captain?: Participant;
-            }) => {
-              if (!tp.participant) return null;
-
-              return {
-                id: tp.id,
-                tournamentId: tp.tournamentId,
-                participantId: tp.participantId,
-                Tournament: {
-                  id: tp.tournamentId,
-                  name: parent.name,
-                  createdAt: parent.createdAt,
-                },
-                Participant: {
-                  id: tp.participant.id,
-                  name: tp.participant.name,
-                  weapon: tp.participant.weapon,
-                  xp: tp.participant.xp,
-                  createdAt: tp.participant.createdAt,
-                },
-                isCaptain: tp.isCaptain,
-                createdAt: tp.createdAt,
-              };
-            }
-          )
+          .map((tp: TournamentParticipantDTO) => {
+            if (!tp.participant) return null;
+            return {
+              tournamentId: tp.tournamentId,
+              participantId: tp.participantId,
+              Tournament: {
+                id: tp.tournamentId,
+                name: parent.name,
+                createdAt: parent.createdAt,
+              },
+              Participant: {
+                id: tp.participant.id,
+                name: tp.participant.name,
+                weapon: tp.participant.weapon,
+                xp: tp.participant.xp,
+                createdAt: tp.participant.createdAt,
+              },
+              isCaptain: tp.isCaptain,
+              createdAt: tp.createdAt,
+            };
+          })
           .filter((item) => item !== null);
       } catch (error) {
         console.error('トーナメント参加者取得エラー:', error);
