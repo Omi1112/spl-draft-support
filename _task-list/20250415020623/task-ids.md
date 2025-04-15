@@ -1,0 +1,7 @@
+# エンティティテスト作成タスク ステータス
+
+[x] ENTITY-TEST-001
+[x] ENTITY-TEST-002
+[x] ENTITY-TEST-003
+[x] ENTITY-TEST-004
+[x] ENTITY-TEST-005

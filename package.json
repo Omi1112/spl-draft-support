@@ -20,8 +20,7 @@
     "test:typecheck": "npm run typecheck && npm test",
     "test:entity": "jest __tests__/api/core/domain/entities",
     "test:usecase": "jest __tests__/api/core/application/useCases",
-    "test:repository": "jest __tests__/api/core/infrastructure/repositories",
-    "pretest": "npm run lint"
+    "test:repository": "jest __tests__/api/core/infrastructure/repositories"
   },
   "dependencies": {
     "@graphql-tools/schema": "^10.0.23",
