@@ -32,16 +32,6 @@ const toggleCaptainUseCase = new ToggleCaptainUseCase(
 // 型定義
 type Context = Record<string, unknown>;
 
-// 参加者の基本型
-interface ParticipantType {
-  id: string;
-  name: string;
-  weapon: string;
-  xp: number;
-  createdAt: Date | string;
-  isCaptain?: boolean;
-}
-
 // 入力型
 interface CreateParticipantInput {
   name: string;
@@ -179,7 +169,7 @@ export const participantResolvers = {
           weapon: participant.weapon,
           xp: participant.xp,
           createdAt: participant.createdAt.toISOString(),
-          isCaptain: (result as any).isCaptain,
+          isCaptain: (result as { isCaptain: boolean }).isCaptain,
         };
       } catch (error) {
         return handleError(error, '参加者の追加に失敗しました');
@@ -253,7 +243,7 @@ export const participantResolvers = {
           tournamentId: result.tournamentId,
           participantId: result.participantId,
           createdAt: result.createdAt,
-          isCaptain: (result as any).isCaptain,
+          isCaptain: (result as { isCaptain: boolean }).isCaptain,
         };
       } catch (error) {
         return handleError(error, 'トーナメントへの参加者追加に失敗しました');

@@ -69,7 +69,7 @@ export async function fetchTournament(id: string): Promise<Tournament> {
   if (result.data?.tournament?.tournamentParticipants) {
     console.log(
       'Tournament participants:',
-      result.data.tournament.tournamentParticipants.map((tp: any) => ({
+      result.data.tournament.tournamentParticipants.map((tp: TournamentParticipant) => ({
         participantId: tp.Participant.id,
         participantName: tp.Participant.name,
         isCaptain: tp.isCaptain,

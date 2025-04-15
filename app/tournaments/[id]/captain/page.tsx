@@ -10,8 +10,6 @@ import { LoadingState } from '../components/LoadingState';
 
 import { fetchTournamentCaptains } from './api';
 
-// 共通コンポーネントのインポート
-
 // 新しく作成したコンポーネントのインポート
 import { CaptainCard } from './components/CaptainCard';
 import { TournamentWithCaptains } from './types';

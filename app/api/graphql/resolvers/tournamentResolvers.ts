@@ -185,29 +185,38 @@ export const tournamentResolvers = {
 
         // GraphQLスキーマに合わせた形式に変換
         return tournamentParticipants
-          .map((tp: any) => {
-            if (!tp.participant) return null;
+          .map(
+            (tp: {
+              id: string;
+              name: string;
+              captainId: string;
+              createdAt: Date | string;
+              members?: Participant[];
+              captain?: Participant;
+            }) => {
+              if (!tp.participant) return null;
 
-            return {
-              id: tp.id,
-              tournamentId: tp.tournamentId,
-              participantId: tp.participantId,
-              Tournament: {
-                id: tp.tournamentId,
-                name: parent.name,
-                createdAt: parent.createdAt,
-              },
-              Participant: {
-                id: tp.participant.id,
-                name: tp.participant.name,
-                weapon: tp.participant.weapon,
-                xp: tp.participant.xp,
-                createdAt: tp.participant.createdAt,
-              },
-              isCaptain: tp.isCaptain,
-              createdAt: tp.createdAt,
-            };
-          })
+              return {
+                id: tp.id,
+                tournamentId: tp.tournamentId,
+                participantId: tp.participantId,
+                Tournament: {
+                  id: tp.tournamentId,
+                  name: parent.name,
+                  createdAt: parent.createdAt,
+                },
+                Participant: {
+                  id: tp.participant.id,
+                  name: tp.participant.name,
+                  weapon: tp.participant.weapon,
+                  xp: tp.participant.xp,
+                  createdAt: tp.participant.createdAt,
+                },
+                isCaptain: tp.isCaptain,
+                createdAt: tp.createdAt,
+              };
+            }
+          )
           .filter((item) => item !== null);
       } catch (error) {
         console.error('トーナメント参加者取得エラー:', error);
