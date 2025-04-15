@@ -7,6 +7,7 @@ GraphQLエラー「Cannot return null for non-nullable field Team.id.」が発�
 ## タスク一覧
 
 ### 修正と実装
+
 - [ ] DraftDomainServiceとStartDraftUseCaseの戻り値型の不一致を調査する
 - [ ] StartDraftUseCaseの戻り値型を修正する（配列の最初の要素を返すか、型を変更する）
 - [ ] 必要に応じてGraphQLスキーマを修正する
