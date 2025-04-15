@@ -31,7 +31,7 @@ YYYYmmDDHHMMSSを取得する時は、`date "+%Y%m%d%H%M%S"`コマンドを利�
   - `.copilot-review-instructions.md`
   - `.copilot-test-instructions.md`
 - **メモリーバンク:** `_memory-bank/_memory-bank-instructions.md` (過去の会話や作業内容の記録。会話開始時に読み込む)
-- **タスクリスト:** `_task-list/[YYYYmmDDHHMMSS]/task-details.md`
+- **タスクリスト:** `_task-list/[YYYYmmDDHHMMSS]/task-list.md`
 - **実現したい事:** `issues/` ディレクトリ内のファイル群
 
 ## 4. タスク管理の詳細
@@ -41,7 +41,7 @@ YYYYmmDDHHMMSSを取得する時は、`date "+%Y%m%d%H%M%S"`コマンドを利�
 - **作成手順**
 - 初めに実現したいことを確認し、タスク分割を行いタスクリストを作成します。
 
-  - ファイル名:`_task-list/[YYYYmmDDHHMMSS]/task-details.md`
+  - ファイル名:`_task-list/[YYYYmmDDHHMMSS]/task-list.md`
   - 内容: タスク毎に以下情報を載せて一覧化します。
     - タスクID: タスクを一意に識別するためのID
     - タスク名: タスクの名称、大まかにどのようか人間がわかるようにしてください。(例:draftStart)

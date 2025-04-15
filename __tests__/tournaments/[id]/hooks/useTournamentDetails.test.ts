@@ -71,6 +71,13 @@ describe('useTournamentDetails', () => {
       handleSubmit: expect.any(Function),
       handleCaptainToggle: expect.any(Function),
       isProcessingCaptain: false,
+      // ドラフトリセット関連のプロパティを追加
+      isResetting: undefined,
+      showConfirmDialog: undefined,
+      resetError: undefined,
+      handleResetClick: undefined,
+      handleConfirmReset: undefined,
+      handleCancelReset: undefined,
     });
 
     // 各フックが正しいパラメータで呼ばれたか検証

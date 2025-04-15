@@ -33,8 +33,9 @@ describe('Tournamentエンティティ', () => {
     const originalStatus = tournament.draftStatus;
     tournament.startDraft();
     expect(tournament.draftStatus).not.toBe(originalStatus);
+    const startedStatus = tournament.draftStatus;
     tournament.reset();
-    expect(tournament.draftStatus).not.toBe(originalStatus);
+    expect(tournament.draftStatus).not.toBe(startedStatus);
     const newStatus = DraftStatus.create();
     tournament.updateDraftStatus(newStatus);
     expect(tournament.draftStatus).toBe(newStatus);

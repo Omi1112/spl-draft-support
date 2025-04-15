@@ -1,4 +1,3 @@
-// filepath: /workspace/app/components/tournaments/ParticipantList.tsx
 // 参加者一覧を表示するコンポーネント
 
 import Link from 'next/link';
@@ -21,14 +20,16 @@ export function ParticipantList({
   onAddParticipant,
   processingCaptainId,
 }: ParticipantListProps) {
+  // tournamentParticipantsがundefinedやnullの場合は空配列にする防御的実装
+  const safeParticipants = Array.isArray(tournamentParticipants) ? tournamentParticipants : [];
   // ID順にソートされた参加者リストを生成
   const sortedParticipantData = useMemo(() => {
     // TournamentParticipant経由でデータを参照する形に変更
-    return [...tournamentParticipants].sort((a, b) => {
+    return [...safeParticipants].sort((a, b) => {
       // ID文字列を比較して昇順にソート
       return a.Participant.id.localeCompare(b.Participant.id);
     });
-  }, [tournamentParticipants]);
+  }, [safeParticipants]);
 
   return (
     <div className="bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6 mb-8">

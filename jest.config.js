@@ -3,7 +3,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/',
+    '^@/(.*)$': '<rootDir>/$1', // tsconfig.jsonのpathsに合わせて修正
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
