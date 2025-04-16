@@ -3,7 +3,6 @@
 import { test, expect } from '@playwright/test';
 
 const TEST_URL = 'http://localhost:3000/';
-const SCREENSHOT_DIR = 'playwright/test-results/screenshots';
 
 /**
  * 参加者を追加する共通処理
@@ -32,14 +31,15 @@ async function addParticipant(
   await expect(page.getByText(name)).toBeVisible();
 }
 
-test('大会作成と参加者追加のE2Eテスト', async ({ page }) => {
+test('大会作成と参加者追加のE2Eテスト', async ({ page }, testInfo) => {
+  // スクリーンショット保存先は testInfo.outputDir を直接利用
   await page.goto(TEST_URL);
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/top.png` });
+  await page.screenshot({ path: `${testInfo.outputDir}/top.png` });
   await page.getByText('大会を作成する').click();
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/create-tournament.png` });
+  await page.screenshot({ path: `${testInfo.outputDir}/create-tournament.png` });
   await page.getByLabel('大会名').fill('テスト大会');
   await page.getByText('大会を作成する').click();
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/tournament-detail.png` });
+  await page.screenshot({ path: `${testInfo.outputDir}/tournament-detail.png` });
 
   // 1人目
   await addParticipant(
@@ -47,7 +47,7 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }) => {
     'テスト参加者1',
     'シューター',
     '2000',
-    `${SCREENSHOT_DIR}/add-participant1.png`
+    `${testInfo.outputDir}/add-participant1.png`
   );
   // 2人目
   await addParticipant(
@@ -55,7 +55,7 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }) => {
     'テスト参加者2',
     'チャージャー',
     '1800',
-    `${SCREENSHOT_DIR}/add-participant2.png`
+    `${testInfo.outputDir}/add-participant2.png`
   );
   // 3人目
   await addParticipant(
@@ -63,12 +63,15 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }) => {
     'テスト参加者3',
     'ローラー',
     '1500',
-    `${SCREENSHOT_DIR}/add-participant3.png`
+    `${testInfo.outputDir}/add-participant3.png`
   );
 
   // 参加者一覧に3名が表示されていることを確認
   await expect(page.getByText('テスト参加者1')).toBeVisible();
   await expect(page.getByText('テスト参加者2')).toBeVisible();
   await expect(page.getByText('テスト参加者3')).toBeVisible();
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/participant-list.png`, fullPage: true });
+  await page.screenshot({
+    path: `${testInfo.outputDir}/participant-list.png`,
+    fullPage: true,
+  });
 });

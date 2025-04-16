@@ -8,7 +8,6 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   // テストディレクトリと出力ディレクトリ
   testDir: './playwright',
-  outputDir: './playwright/test-results',
 
   // タイムアウト設定
   timeout: 60000, // 60秒
@@ -36,5 +35,18 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2分
+  },
+
+  use: {
+    /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
+    actionTimeout: 0,
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    // baseURL: 'http://localhost:3000',
+
+    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
+
+    /* 動画を撮る */
+    video: 'on',
   },
 });
