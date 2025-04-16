@@ -14,20 +14,15 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "lint:unused-imports": "next lint --fix --dir=. --rule 'unused-imports/no-unused-imports: error'",
     "lint-staged": "lint-staged",
     "postinstall": "prisma generate",
-    "prepare": "husky",
+    "prepare": "husky && playwright install && playwright install-deps",
     "test": "jest",
+    "test:e2e": "playwright test",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "test:typecheck": "npm run typecheck && npm test",
-    "test:entity": "jest __tests__/api/core/domain/entities",
-    "test:usecase": "jest __tests__/api/core/application/useCases",
-    "test:repository": "jest __tests__/api/core/infrastructure/repositories"
+    "test:typecheck": "npm run typecheck && npm test"
   },
   "dependencies": {
     "@graphql-tools/schema": "^10.0.23",
@@ -42,6 +37,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
     "@swc/core": "^1.11.18",
     "@swc/jest": "^0.2.37",
     "@tailwindcss/postcss": "^4",

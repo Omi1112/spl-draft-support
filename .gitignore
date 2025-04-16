@@ -43,3 +43,4 @@ task.md
 prompt/task_create.md
 prompt/reflection_create.md
 tmp/*
+playwright/test-results/*
