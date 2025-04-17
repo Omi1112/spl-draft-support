@@ -70,11 +70,7 @@ YYYYmmDDHHMMSSを取得する時は、`date "+%Y%m%d%H%M%S"`コマンドを利�
 - api ディレクトリは、DDD を採用しています。適切に分離してください。
 - 後方互換性のためのメソッドを基本的に作成しないでください。
 - 実装後には、必ず以下タスクを積んでください。エラーが出た場合修正タスクを積んで、そのまま修正を実行してください。
-  - `npm run lint` を実行して全体フォーマットをして完了してください
-  - `npm run typecheck` を実行して全体型チェックをして完了してください
-  - `npm run test` を実行して全体テストをして完了してください
-  - `npm run build` を実行して全体ビルドをして完了してください
-  - `npm run test:e2e` を実行してe2eテストをして完了してください
+  - `npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e`
 
 ### DDD ルール
 
