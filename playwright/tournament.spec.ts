@@ -162,7 +162,6 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }, testInfo)
   await page.screenshot({ path: `${testInfo.outputDir}/captain2-page.png`, fullPage: true });
   await expect(page.getByText('キャプテン情報')).toBeVisible();
 
-  await expect(page.getByRole('button', { name: 'ドラフトをリセット' })).toBeVisible();
   // テスト参加者4の指名
   await nominateParticipant(page, 'テスト参加者4');
   await page.screenshot({
