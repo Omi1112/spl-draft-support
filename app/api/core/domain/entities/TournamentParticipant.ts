@@ -4,8 +4,14 @@ import { TournamentId } from '../valueObjects/TournamentId';
 import { TournamentParticipantId } from '../valueObjects/TournamentParticipantId';
 
 /**
- * トーナメント参加者エンティティ
- * トーナメントと参加者の関連を表すエンティティ
+ * TournamentParticipantエンティティ
+ *
+ * 大会と参加者の「関連・状態」を表現する主軸エンティティ。
+ * - 大会ID・参加者IDのペアで一意
+ * - isCaptain, teamId, createdAt等の大会内状態を保持
+ * - 参加者の個人情報はParticipantエンティティに委譲
+ *
+ * 設計方針: GraphQL/API/DTO/テスト/UI全てでTournamentParticipant主軸・Participantネスト型に統一
  */
 export class TournamentParticipant {
   private readonly _id: TournamentParticipantId;

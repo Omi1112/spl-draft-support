@@ -31,10 +31,10 @@ export default defineConfig({
 
   // ウェブサーバー設定
   webServer: {
-    command: 'npm run start',
+    command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000, // 2分
+    timeout: 600000, // 10分
   },
 
   use: {

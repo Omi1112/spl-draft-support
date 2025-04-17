@@ -2,8 +2,13 @@ import { ParticipantId } from '../valueObjects/ParticipantId';
 import { TeamId } from '../valueObjects/TeamId';
 
 /**
- * 参加者エンティティ
- * ドラフトに参加する個人のプレイヤー情報を表します
+ * Participantエンティティ
+ *
+ * 個人のプレイヤー情報のみを保持するエンティティ。
+ * - id, name, weapon, xp, createdAt, teamId, isCaptain など
+ * - 大会内での状態（キャプテン・チーム等）はTournamentParticipant側で管理
+ *
+ * 設計方針: 直接操作は最小限とし、必ずTournamentParticipant経由で利用する
  */
 export class Participant {
   private readonly _id: ParticipantId;
@@ -12,7 +17,6 @@ export class Participant {
   private _xp: number;
   private _createdAt: Date;
   private _teamId: TeamId | null;
-  private _isCaptain: boolean;
 
   private constructor(
     id: ParticipantId,
@@ -20,8 +24,7 @@ export class Participant {
     weapon: string,
     xp: number,
     createdAt: Date,
-    teamId: TeamId | null = null,
-    isCaptain: boolean = false
+    teamId: TeamId | null = null
   ) {
     this._id = id;
     this._name = name;
@@ -29,7 +32,6 @@ export class Participant {
     this._xp = xp;
     this._createdAt = createdAt;
     this._teamId = teamId;
-    this._isCaptain = isCaptain;
   }
 
   /**
@@ -40,8 +42,9 @@ export class Participant {
    * @param isCaptain キャプテンかどうか
    * @returns 新しい参加者エンティティ
    */
-  static create(name: string, weapon: string, xp: number, isCaptain: boolean = false): Participant {
-    return new Participant(ParticipantId.create(), name, weapon, xp, new Date(), null, isCaptain);
+  static create(name: string, weapon: string, xp: number): Participant {
+    // isCaptainはTournamentParticipantで管理するため、ここでは無視
+    return new Participant(ParticipantId.create(), name, weapon, xp, new Date(), null);
   }
 
   /**
@@ -61,8 +64,7 @@ export class Participant {
     weapon: string,
     xp: number,
     createdAt: Date,
-    teamId: string | null = null,
-    isCaptain: boolean = false
+    teamId: string | null = null
   ): Participant {
     return new Participant(
       ParticipantId.reconstruct(id),
@@ -70,8 +72,7 @@ export class Participant {
       weapon,
       xp,
       createdAt,
-      teamId ? TeamId.reconstruct(teamId) : null,
-      isCaptain
+      teamId ? TeamId.reconstruct(teamId) : null
     );
   }
 
@@ -81,21 +82,6 @@ export class Participant {
    */
   assignToTeam(teamId: TeamId | null): void {
     this._teamId = teamId;
-  }
-
-  /**
-   * キャプテン状態を切り替える
-   */
-  toggleCaptainStatus(): void {
-    this._isCaptain = !this._isCaptain;
-  }
-
-  /**
-   * キャプテン状態を設定する
-   * @param isCaptain キャプテンかどうか
-   */
-  setCaptainStatus(isCaptain: boolean): void {
-    this._isCaptain = isCaptain;
   }
 
   // Getters
@@ -121,9 +107,5 @@ export class Participant {
 
   get teamId(): TeamId | null {
     return this._teamId;
-  }
-
-  get isCaptain(): boolean {
-    return this._isCaptain;
   }
 }

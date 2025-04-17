@@ -13,14 +13,25 @@ export interface AddParticipantDTO {
   isCaptain: boolean;
 }
 
-// 出力用のDTOインターフェース
-interface OutputParticipantDTO {
+export interface TournamentParticipantDTO {
   id: string;
-  name: string;
   tournamentId: string;
   participantId: string;
   createdAt: string;
   isCaptain: boolean;
+  tournament: {
+    id: string;
+    name: string;
+    createdAt: string;
+  };
+  participant: {
+    id: string;
+    name: string;
+    weapon: string;
+    xp: number;
+    createdAt: string;
+    isCaptain: boolean;
+  };
 }
 
 export class AddParticipantToTournamentUseCase {
@@ -30,7 +41,7 @@ export class AddParticipantToTournamentUseCase {
     private tournamentParticipantRepository: TournamentParticipantRepository
   ) {}
 
-  async execute(input: AddParticipantDTO): Promise<OutputParticipantDTO> {
+  async execute(input: AddParticipantDTO): Promise<TournamentParticipantDTO> {
     // 入力値のバリデーション
     if (!input.name || input.name.trim() === '') {
       throw new Error('参加者名は必須です');
@@ -53,8 +64,7 @@ export class AddParticipantToTournamentUseCase {
     const participant = Participant.create(
       input.name.trim(),
       input.weapon || 'default-weapon', // クライアントから送信されたweaponを使用、なければデフォルト値
-      input.xp || 0, // クライアントから送信されたxpを使用、なければデフォルト値
-      input.isCaptain || false
+      input.xp || 0 // クライアントから送信されたxpを使用、なければデフォルト値
     );
 
     // 参加者データを保存
@@ -70,14 +80,26 @@ export class AddParticipantToTournamentUseCase {
     // TournamentParticipantRepositoryを使ってデータを保存
     await this.tournamentParticipantRepository.save(tournamentParticipant);
 
-    // DTOを返却
+    // TournamentParticipantDTO型で返却
     return {
-      id: participant.id.value,
-      name: participant.name,
+      id: tournamentParticipant.id.value,
+      tournament: {
+        id: tournament.id.value,
+        name: tournament.name,
+        createdAt: tournament.createdAt.toISOString(),
+      },
+      participant: {
+        id: participant.id.value,
+        name: participant.name,
+        weapon: participant.weapon,
+        xp: participant.xp,
+        createdAt: participant.createdAt.toISOString(),
+        isCaptain: input.isCaptain || false,
+      },
+      isCaptain: input.isCaptain || false,
+      createdAt: tournamentParticipant.createdAt.toISOString(),
       tournamentId: tournament.id.value,
       participantId: participant.id.value,
-      createdAt: participant.createdAt.toISOString(),
-      isCaptain: input.isCaptain || false,
     };
   }
 }

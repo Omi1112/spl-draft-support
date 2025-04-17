@@ -1,7 +1,6 @@
 import { AddParticipantToTournamentUseCase } from '../../core/application/useCases/participant/AddParticipantToTournamentUseCase';
 import { ToggleCaptainUseCase } from '../../core/application/useCases/participant/ToggleCaptainUseCase';
 import { TournamentParticipantDomainService } from '../../core/domain/services/TournamentParticipantDomainService';
-import { ParticipantId } from '../../core/domain/valueObjects/ParticipantId';
 import { TournamentId } from '../../core/domain/valueObjects/TournamentId';
 import { prisma } from '../../core/infrastructure/persistence/prisma/client';
 import { PrismaParticipantRepository } from '../../core/infrastructure/repositories/PrismaParticipantRepository';
@@ -55,19 +54,37 @@ const handleError = (error: unknown, message: string): never => {
 
 export const participantResolvers = {
   Query: {
-    // トーナメント参加者一覧を取得
-    participants: async (_: Context, { tournamentId }: { tournamentId: string }) => {
+    // トーナメント参加者一覧を取得（未所属かつキャプテンでない参加者のみ返すオプション追加）
+    participants: async (
+      _parent: Context,
+      args: { tournamentId: string; unassignedOnly?: boolean }
+    ) => {
       try {
         const participants = await participantRepository.findByTournamentId(
-          new TournamentId(tournamentId)
+          new TournamentId(args.tournamentId)
         );
-
+        // オプション指定時のみ未所属かつキャプテンでない参加者のみ返す
+        // isCaptainはTournamentParticipant経由で判定する必要があるため、ここでは一時的に全員返す
+        if (args.unassignedOnly) {
+          return participants
+            .filter((p) => !p.teamId)
+            .map((p) => ({
+              id: p.id.value,
+              name: p.name,
+              weapon: p.weapon,
+              xp: p.xp,
+              createdAt: p.createdAt.toISOString(),
+              team: null,
+            }));
+        }
+        // 既存の全件返却
         return participants.map((p) => ({
           id: p.id.value,
           name: p.name,
           weapon: p.weapon,
           xp: p.xp,
           createdAt: p.createdAt.toISOString(),
+          team: p.teamId ? { id: p.teamId.value } : null,
         }));
       } catch (error) {
         return handleError(error, '参加者一覧の取得に失敗しました');
@@ -143,7 +160,7 @@ export const participantResolvers = {
     },
   },
   Mutation: {
-    // 参加者を追加
+    // 参加者を追加（TournamentParticipant主軸・Participantネスト型で返却）
     addParticipant: async (_: Context, { input }: { input: CreateParticipantInput }) => {
       try {
         const result = await addParticipantToTournamentUseCase.execute({
@@ -153,24 +170,8 @@ export const participantResolvers = {
           xp: input.xp,
           isCaptain: input.isCaptain || false,
         });
-
-        // 追加された参加者の情報を取得
-        const participant = await participantRepository.findById(
-          new ParticipantId(result.participantId)
-        );
-
-        if (!participant) {
-          throw new Error('参加者の追加に成功しましたが、データの取得に失敗しました');
-        }
-
-        return {
-          id: participant.id.value,
-          name: participant.name,
-          weapon: participant.weapon,
-          xp: participant.xp,
-          createdAt: participant.createdAt.toISOString(),
-          isCaptain: (result as { isCaptain: boolean }).isCaptain,
-        };
+        // TournamentParticipantDTO型でそのまま返却
+        return result;
       } catch (error) {
         return handleError(error, '参加者の追加に失敗しました');
       }

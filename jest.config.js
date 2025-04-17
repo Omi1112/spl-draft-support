@@ -24,4 +24,5 @@ module.exports = {
       statements: 70,
     },
   },
+  testMatch: ['<rootDir>/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)'],
 };

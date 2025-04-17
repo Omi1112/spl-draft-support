@@ -23,7 +23,7 @@ export class AddParticipantUseCase {
     }
 
     // privateコンストラクタではなく、createメソッドを使用
-    const participant = Participant.create(dto.name, dto.weapon, dto.xp, dto.isCaptain || false);
+    const participant = Participant.create(dto.name, dto.weapon, dto.xp);
 
     // 参加者を保存
     const savedParticipant = await this.participantRepository.save(participant);
@@ -32,19 +32,18 @@ export class AddParticipantUseCase {
     const tournamentParticipant = TournamentParticipant.create(
       tournamentId,
       savedParticipant.id,
-      savedParticipant.isCaptain
+      dto.isCaptain || false
     );
-
     await this.tournamentParticipantRepository.save(tournamentParticipant);
 
-    // DTOに変換して返却
+    // DTOに変換して返却（isCaptainはTournamentParticipantから取得）
     return {
       id: savedParticipant.id.value,
       name: savedParticipant.name,
       weapon: savedParticipant.weapon,
       xp: savedParticipant.xp,
       createdAt: savedParticipant.createdAt.toISOString(),
-      isCaptain: savedParticipant.isCaptain,
+      isCaptain: tournamentParticipant.isCaptain,
     };
   }
 }

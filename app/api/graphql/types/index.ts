@@ -5,10 +5,9 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     createdAt: String!
-    tournamentParticipants: [TournamentParticipant!]
+    tournamentParticipants: [TournamentParticipant!]!
     teams: [Team!]
     draftStatus: DraftStatus
-    captains: [Participant!]
     drafts: [Draft!]
   }
 
@@ -30,7 +29,6 @@ export const typeDefs = gql`
     xp: Int!
     createdAt: String!
     team: Team
-    isCaptain: Boolean
   }
 
   type Team {

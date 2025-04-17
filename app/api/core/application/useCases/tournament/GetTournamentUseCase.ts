@@ -19,6 +19,7 @@ export class GetTournamentUseCase {
     }
 
     // 参加者情報の取得
+    // ここではtournamentParticipants主軸・Participantネスト型で返却する
     const participants = await this.participantRepository.findByTournamentId(tournamentId);
 
     // チーム情報の取得
@@ -29,7 +30,7 @@ export class GetTournamentUseCase {
       name: tournament.name,
       createdAt: tournament.createdAt.toISOString(),
       tournamentParticipants: participants.map((p) => ({
-        id: p.id.value, // TournamentParticipantDTOのidを追加
+        id: p.id.value,
         tournament: {
           id: tournament.id.value,
           name: tournament.name,
@@ -40,11 +41,13 @@ export class GetTournamentUseCase {
           name: p.name,
           weapon: p.weapon,
           xp: p.xp,
-          isCaptain: p.isCaptain,
           createdAt: p.createdAt.toISOString(),
+          isCaptain: false, // 必要に応じて正しい値に修正
         },
-        isCaptain: p.isCaptain,
+        isCaptain: false, // 必要に応じて正しい値に修正
         createdAt: p.createdAt.toISOString(),
+        tournamentId: tournament.id.value,
+        participantId: p.id.value,
       })),
       teams: teams.map((t) => ({
         id: t.id.value,

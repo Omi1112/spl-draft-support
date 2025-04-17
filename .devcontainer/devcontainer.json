@@ -15,7 +15,8 @@
         "donjayamanne.githistory",
         "eamodio.gitlens",
         "mhutchie.git-graph",
-        "firsttris.vscode-jest-runner"
+        "firsttris.vscode-jest-runner",
+        "yzhang.markdown-all-in-one"
       ],
       "settings": {
         "editor.formatOnSave": true,

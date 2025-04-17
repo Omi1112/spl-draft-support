@@ -21,7 +21,7 @@ export async function fetchTournamentData(
           turn
         }
       }
-      participants(tournamentId: $tournamentId) {
+      participants(tournamentId: $tournamentId, unassignedOnly: true) {
         id
         name
         weapon
@@ -94,7 +94,8 @@ export async function fetchTournamentData(
     throw new Error('指定されたキャプテンが見つかりませんでした');
   }
 
-  // チームに所属していない参加者だけをフィルタリング
+  // チームに所属していない、かつキャプテンでない参加者のみを未所属リストに含める
+  // 既にチームに所属している参加者やリーダ（キャプテン）は除外する
   const unassignedParticipants = result.data.participants.filter(
     (p: Participant) => !p.team && !p.isCaptain
   );
