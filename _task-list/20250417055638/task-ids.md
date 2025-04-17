@@ -1,2 +1,0 @@
-[x] FIX-FE-QUERY-001
-[~] FIX-FE-QUERY-002

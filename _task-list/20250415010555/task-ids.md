@@ -1,8 +1,0 @@
-[x] LINT-001
-[x] LINT-002
-[x] LINT-003
-[x] LINT-004
-[x] LINT-005
-[x] LINT-006
-[x] LINT-007
-[x] LINT-008
