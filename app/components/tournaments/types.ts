@@ -1,4 +1,3 @@
-// filepath: /workspace/app/components/tournaments/types.ts
 // 型定義
 
 // 大会データの型定義
@@ -7,7 +6,6 @@ export interface Tournament {
   name: string;
   createdAt: string;
   tournamentParticipants: TournamentParticipantWithParticipant[];
-  captains?: Participant[];
   captain?: Participant;
   teams?: Team[];
   drafts?: Draft[];

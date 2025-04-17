@@ -1,9 +1,9 @@
-import { TournamentWithCaptains } from '../types';
+import { TournamentWithParticipant } from '../types';
 
 // GraphQLクエリを実行する関数
 export async function fetchTournamentCaptains(
   tournamentId: string
-): Promise<TournamentWithCaptains> {
+): Promise<TournamentWithParticipant> {
   const query = `
     query GetTournamentCaptains($id: ID!) {
       tournament(id: $id) {
@@ -40,5 +40,8 @@ export async function fetchTournamentCaptains(
     throw new Error(result.errors[0]?.message || 'GraphQL error occurred');
   }
 
-  return result.data.tournament;
+  return {
+    ...result.data.tournament,
+    participants: result.data.tournament.participants,
+  };
 }

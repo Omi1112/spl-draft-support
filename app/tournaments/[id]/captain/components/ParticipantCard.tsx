@@ -3,14 +3,14 @@
 import Link from 'next/link';
 
 import { formatDate } from '../../../../utils/formatDate';
-import { Captain } from '../types';
+import { Participant } from '../types';
 
-interface CaptainCardProps {
+interface ParticipantCardProps {
   tournamentId: string;
-  captain: Captain;
+  captain: Participant;
 }
 
-export function CaptainCard({ tournamentId, captain }: CaptainCardProps) {
+export function ParticipantCard({ tournamentId, captain }: ParticipantCardProps) {
   return (
     <Link
       href={`/tournaments/${tournamentId}/captain/${captain.id}`}

@@ -8,7 +8,7 @@ export interface Tournament {
 }
 
 // キャプテン（参加者）データの型定義
-export interface Captain {
+export interface Participant {
   id: string;
   name: string;
   weapon: string;
@@ -17,6 +17,6 @@ export interface Captain {
 }
 
 // 大会とキャプテンのデータを含む型定義
-export interface TournamentWithCaptains extends Tournament {
-  participants: Captain[];
+export interface TournamentWithParticipant extends Tournament {
+  participants: Participant[];
 }

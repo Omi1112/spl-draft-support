@@ -8,16 +8,20 @@ import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 
 import { fetchTournamentCaptains } from './api';
-import { CaptainCard } from './components/CaptainCard';
-import { TournamentWithCaptains } from './types';
+import { ParticipantCard } from './components/ParticipantCard';
+import { Tournament } from './types';
+import type { Participant } from './types/index';
 
 export default function TournamentCaptainsPage() {
   const params = useParams();
   const tournamentId = params.id as string;
 
-  const [tournament, setTournament] = useState<TournamentWithCaptains | null>(null);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 取得したtournamentData.participantsをローカル変数に
+  const [participants, setParticipants] = useState<Participant[]>([]);
 
   useEffect(() => {
     if (!tournamentId) return;
@@ -27,6 +31,12 @@ export default function TournamentCaptainsPage() {
         setLoading(true);
         const tournamentData = await fetchTournamentCaptains(tournamentId);
         setTournament(tournamentData);
+        // participants配列があればセット
+        if ('participants' in tournamentData && Array.isArray(tournamentData.participants)) {
+          setParticipants(tournamentData.participants);
+        } else {
+          setParticipants([]);
+        }
       } catch (err) {
         console.error('Error fetching tournament captains:', err);
         setError('キャプテンデータの取得中にエラーが発生しました');
@@ -63,10 +73,10 @@ export default function TournamentCaptainsPage() {
         </Link>
       </div>
 
-      {tournament.participants && tournament.participants.length > 0 ? (
+      {participants.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tournament.participants.map((captain) => (
-            <CaptainCard key={captain.id} tournamentId={tournament.id} captain={captain} />
+          {participants.map((captain) => (
+            <ParticipantCard key={captain.id} tournamentId={tournament.id} captain={captain} />
           ))}
         </div>
       ) : (

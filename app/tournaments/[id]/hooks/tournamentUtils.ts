@@ -7,43 +7,16 @@ import { Tournament } from '../../../components/tournaments/types';
  * GraphQLスキーマに合わせて適切に処理
  */
 export function addCaptainFlagsToParticipants(tournament: Tournament): Tournament {
-  // APIの構造にあわせてキャプテン情報を取得
-  // captains配列がある場合はparticipantIdフィールドを使用
-  // ない場合は代替の処理を行う
-  const captainParticipantIds =
-    tournament.captains?.map((captain) => {
-      // participantIdフィールドが存在する場合はそれを使用
-      if ('participantId' in captain) {
-        return captain.participantId;
-      }
-      // participantIdがない場合はidを使用（APIの構造によって異なる場合がある）
-      return captain.id;
-    }) || [];
-
-  console.log('キャプテン設定: ', captainParticipantIds);
-
-  // tournamentParticipantsが存在する場合はそのまま使用する
-  // GraphQLスキーマに合わせた形式になっているはず
+  // captains配列は今後利用しないため、tournamentParticipantsのisCaptainのみで判定する
   if (tournament.tournamentParticipants) {
-    console.log(
-      'トーナメント参加者データ: ',
-      tournament.tournamentParticipants.map((tp) => ({
-        participantId: tp.Participant.id,
-        participantName: tp.Participant.name,
-        isCaptain: tp.isCaptain,
-      }))
-    );
-
+    // 参加者情報にisCaptainフラグが含まれている前提でそのまま返す
     return tournament;
   }
-
-  // 互換性のために残しているが、tournamentParticipantsが正しく実装されていれば
-  // このパスは通らないはず
-  console.warn(
-    '従来のparticipantsフィールドが使用されています。tournamentParticipantsへの移行を検討してください。'
-  );
-
-  return tournament;
+  // 旧データ構造などでtournamentParticipantsがない場合は空配列を返す
+  return {
+    ...tournament,
+    tournamentParticipants: [],
+  };
 }
 
 /**

@@ -21,12 +21,6 @@ export async function fetchTournament(id: string): Promise<Tournament> {
           isCaptain
           createdAt
         }
-        captains {
-          id
-          name
-          weapon
-          xp
-        }
         teams {
           id
           name
