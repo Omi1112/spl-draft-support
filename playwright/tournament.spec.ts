@@ -31,6 +31,59 @@ async function addParticipant(
   await expect(page.getByText(name)).toBeVisible();
 }
 
+/**
+ * 指定した参加者名のキャプテン設定ボタンをクリックする
+ * @param page PlaywrightのPageオブジェクト
+ * @param participantName 参加者名
+ */
+async function setCaptain(page: import('@playwright/test').Page, participantName: string) {
+  const allTrs = await page.locator('table tbody tr').all();
+  for (const tr of allTrs) {
+    const tds = await tr.locator('td').all();
+    if (tds.length > 0) {
+      const name = await tds[0].innerText();
+      if (name.trim() === participantName) {
+        await tds[3].locator('button').first().click();
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * 指定した参加者名の指名ボタンをクリックし、モーダルで指名を確定する
+ * @param page PlaywrightのPageオブジェクト
+ * @param participantName 参加者名
+ */
+async function nominateParticipant(page: import('@playwright/test').Page, participantName: string) {
+  const draftTableTrs = await page.locator('table tbody tr').all();
+  for (const tr of draftTableTrs) {
+    const tds = await tr.locator('td').all();
+    if (tds.length > 0) {
+      const name = await tds[0].innerText();
+      if (name.trim() === participantName) {
+        await tds[3].locator('button', { hasText: '指名する' }).click();
+        break;
+      }
+    }
+  }
+  // モーダル内の「指名する」ボタンを押す
+  const modal = page.locator('div[role="dialog"], .fixed, .z-50');
+  await expect(modal).toBeVisible();
+  await modal.getByRole('button', { name: '指名する' }).click();
+}
+
+/**
+ * 指定したキャプテン名のキャプテンページへ遷移する
+ * @param page PlaywrightのPageオブジェクト
+ * @param captainName キャプテン名
+ */
+async function goToCaptainPage(page: import('@playwright/test').Page, captainName: string) {
+  const linkSpan = await page.getByText(`${captainName}のキャプテンページを表示`);
+  const link = await linkSpan.locator('..');
+  await link.click();
+}
+
 test('大会作成と参加者追加のE2Eテスト', async ({ page }, testInfo) => {
   // スクリーンショット保存先は testInfo.outputDir を直接利用
   await page.goto(TEST_URL);
@@ -71,40 +124,49 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }, testInfo)
     fullPage: true,
   });
 
-  // --- キャプテン2名選択・キャプテンページ遷移E2Eテスト追加 ---
-  // // 参加者リストのロード完了を明示的に待つ
-  // await expect(page.getByRole('row', { name: /テスト参加者1/ })).toBeVisible();
-  // await expect(page.getByRole('row', { name: /テスト参加者2/ })).toBeVisible();
-
   // 1. 1人目の参加者をキャプテンに設定
-  const row1 = await page.getByText('テスト参加者1').locator('..'); // 親td
-  const tr1 = await row1.locator('..'); // 親tr
-  await tr1.locator('button').first().click();
+  await setCaptain(page, 'テスト参加者1');
   await page.screenshot({ path: `${testInfo.outputDir}/captain1-selected.png`, fullPage: true });
 
   // 2. 2人目の参加者をキャプテンに設定
-  const row2 = await page.getByText('テスト参加者2').locator('..');
-  const tr2 = await row2.locator('..');
-  await tr2.locator('button').first().click();
+  await setCaptain(page, 'テスト参加者2');
   await page.screenshot({ path: `${testInfo.outputDir}/captain2-selected.png`, fullPage: true });
 
-  // // 3. キャプテン一覧ページへ遷移
-  // await page.getByText('キャプテン一覧').click();
-  // await page.screenshot({ path: `${testInfo.outputDir}/captain-list.png`, fullPage: true });
-  // // 2名のキャプテンが表示されていることを検証
-  // await expect(page.getByText('テスト参加者1')).toBeVisible();
-  // await expect(page.getByText('テスト参加者2')).toBeVisible();
-
   // 4. 1人目のキャプテンページへ遷移
-  await page.getByRole('link', { name: /テスト参加者1のキャプテンページ/ }).click();
-  await page.screenshot({ path: `${testInfo.outputDir}/captain1-page.png`, fullPage: true });
+  await goToCaptainPage(page, 'テスト参加者1');
   await expect(page.getByText('キャプテン情報')).toBeVisible();
-  await expect(page.getByText('テスト参加者1')).toBeVisible();
+  await page.screenshot({ path: `${testInfo.outputDir}/captain1-page.png`, fullPage: true });
 
-  // 5. 戻って2人目のキャプテンページへ遷移
-  await page.goBack();
-  await page.getByRole('link', { name: /テスト参加者2のキャプテンページ/ }).click();
+  // 4.1 ドラフト開始ボタンを押す
+  page.once('dialog', async (dialog) => {
+    await dialog.accept();
+  });
+  await page.getByRole('button', { name: 'ドラフト開始' }).click();
+  await page.screenshot({ path: `${testInfo.outputDir}/draft-started.png`, fullPage: true });
+
+  await expect(page.getByRole('button', { name: 'ドラフトをリセット' })).toBeVisible();
+
+  // テスト参加者3の指名
+  await nominateParticipant(page, 'テスト参加者3');
+  await page.screenshot({
+    path: `${testInfo.outputDir}/nominated-participant3.png`,
+    fullPage: true,
+  });
+
+  // 「← 大会ページへ戻る」リンクをクリック
+  await page.getByRole('link', { name: /大会ページへ戻る/ }).click();
+  await page.screenshot({ path: `${testInfo.outputDir}/back-to-tournament.png`, fullPage: true });
+
+  // 2人目のキャプテンページへ遷移
+  await goToCaptainPage(page, 'テスト参加者2');
   await page.screenshot({ path: `${testInfo.outputDir}/captain2-page.png`, fullPage: true });
   await expect(page.getByText('キャプテン情報')).toBeVisible();
-  await expect(page.getByText('テスト参加者2')).toBeVisible();
+
+  await expect(page.getByRole('button', { name: 'ドラフトをリセット' })).toBeVisible();
+  // テスト参加者4の指名
+  await nominateParticipant(page, 'テスト参加者4');
+  await page.screenshot({
+    path: `${testInfo.outputDir}/nominated-participant4.png`,
+    fullPage: true,
+  });
 });

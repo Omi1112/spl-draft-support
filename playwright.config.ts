@@ -10,7 +10,7 @@ export default defineConfig({
   testDir: './playwright',
 
   // タイムアウト設定
-  timeout: 60000, // 60秒
+  timeout: 10000, // 10秒
 
   // 並列実行設定
   fullyParallel: true,
