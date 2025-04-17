@@ -19,7 +19,10 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   // レポーター設定
-  reporter: [['html', { outputFolder: './test-results/html-report' }], ['list']],
+  reporter: [
+    ['html', { host: '0.0.0.0', port: '9323', outputFolder: './test-results/html-report' }],
+    ['list'],
+  ],
 
   // ブラウザごとのプロジェクト設定
   projects: [
@@ -31,7 +34,7 @@ export default defineConfig({
 
   // ウェブサーバー設定
   webServer: {
-    command: 'npm run build && npm run start',
+    command: 'npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 600000, // 10分

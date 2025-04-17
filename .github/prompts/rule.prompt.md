@@ -18,8 +18,9 @@
 
 ### DDD ルール
 
-- 基本的にGraphQLのスキーマ(`app/api/graphql/types/index.ts`)を元にドメインモデルを作成してください。
-- GraphQLのスキーマを変更する際は確認を取ってください。
+- 基本的にGraphQLのスキーマ(`app/api/graphql/types/index.ts`)を元にドメインモデルやロジックを組み立ててください。
+- GraphQLのスキーマに変更が必要な場合は、こちらからお伝えします。
+- 実装上どうしても、GraphQLのスキーマを変更する必要がある場合は確認を取ってください。
 
 - Entity
 

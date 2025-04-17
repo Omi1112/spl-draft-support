@@ -27,7 +27,6 @@ export async function fetchTournamentData(
         weapon
         xp
         createdAt
-        isCaptain
         team {
           id
           name

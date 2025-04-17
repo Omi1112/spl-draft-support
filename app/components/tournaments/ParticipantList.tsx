@@ -76,6 +76,7 @@ export function ParticipantList({
                     // 参加者情報が不正な場合はスキップ
                     return null;
                   }
+                  // TournamentParticipant型経由でisCaptainを参照するように修正
                   const isCaptain = tp.isCaptain;
                   const isProcessing = processingCaptainId === participant.id;
 
