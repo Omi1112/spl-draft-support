@@ -5,6 +5,8 @@ import React from 'react';
 import { useTournamentDetail } from '../../hooks/useTournamentDetail';
 import { TournamentParticipant } from '@/app/api/core/domain/entities/TournamentParticipant';
 import TournamentParticipantList from './components/TournamentParticipantList';
+import { AddParticipantModal } from './components/AddParticipantModal'; // default importからnamed importに変更
+import AddParticipantForm, { AddParticipantFormValues } from './components/AddParticipantForm';
 import styles from './page.module.css';
 
 export default function TournamentDetailPage({
@@ -13,8 +15,16 @@ export default function TournamentDetailPage({
   params: Promise<{ tournamentId: string }>;
 }) {
   const { tournamentId } = React.use(params);
-  const { tournament, participants, loading, error, onAddParticipant, onMakeCaptain } =
-    useTournamentDetail(tournamentId);
+  const {
+    tournament,
+    participants,
+    loading,
+    error,
+    onAddParticipant,
+    onAddParticipantFromModal,
+    onMakeCaptain,
+  } = useTournamentDetail(tournamentId);
+  const [modalOpen, setModalOpen] = React.useState(false);
 
   if (loading)
     return (
@@ -34,6 +44,12 @@ export default function TournamentDetailPage({
     xp: 0, // ダミー
   }));
 
+  // 参加者追加モーダルの送信処理
+  const handleAddParticipantFromModal = (values: AddParticipantFormValues) => {
+    onAddParticipantFromModal(values);
+    setModalOpen(false);
+  };
+
   return (
     <main className={`${styles.variables} ${styles.main}`}>
       <div className={styles.headerSection}>
@@ -50,22 +66,17 @@ export default function TournamentDetailPage({
         tournamentId={tournament.id}
         participants={participantsForList}
         onCaptainToggle={onMakeCaptain}
-        onAddParticipant={() => {}}
+        onAddParticipant={() => setModalOpen(true)}
         processingCaptainId={null}
       />
 
-      <form onSubmit={onAddParticipant} className={styles.form}>
-        <input
-          name="participantName"
-          type="text"
-          placeholder="参加者名"
-          required
-          className={styles.input}
+      {/* 参加者追加モーダル */}
+      <AddParticipantModal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <AddParticipantForm
+          onSubmit={handleAddParticipantFromModal}
+          onClose={() => setModalOpen(false)}
         />
-        <button type="submit" className={styles.button}>
-          ➕ 参加者追加
-        </button>
-      </form>
+      </AddParticipantModal>
     </main>
   );
 }

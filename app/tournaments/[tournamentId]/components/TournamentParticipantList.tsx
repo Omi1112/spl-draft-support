@@ -15,7 +15,7 @@ type Props = {
   tournamentId: string;
   participants: Participant[];
   onCaptainToggle: (id: string) => void;
-  onAddParticipant: () => void;
+  onAddParticipant?: () => void;
   processingCaptainId: string | null;
 };
 
@@ -32,7 +32,16 @@ export const TournamentParticipantList: React.FC<Props> = ({
 
   return (
     <div className={`${styles.variables} ${styles.wrapper}`}>
-      <h2 className={styles.header}>参加者一覧</h2>
+      <div className={styles.headerContainer}>
+        {' '}
+        {/* ヘッダーとボタンを横並びにするためのコンテナ */}
+        <h2 className={styles.header}>参加者一覧</h2>
+        {onAddParticipant && (
+          <button type="button" onClick={onAddParticipant} className={styles.addButton}>
+            ➕ 参加者追加
+          </button>
+        )}
+      </div>
       <div className={styles.container}>
         {participants.map((p) => (
           <div key={p.id} className={`${styles.card} ${p.isCaptain ? styles.captainCard : ''}`}>

@@ -1,5 +1,5 @@
-// filepath: /workspace/app/hooks/useTournamentDetail.ts
 import { useState, useCallback } from 'react';
+import { AddParticipantFormValues } from '@/app/tournaments/[tournamentId]/components/AddParticipantForm';
 
 export interface TournamentDetail {
   id: string;
@@ -36,6 +36,20 @@ export function useTournamentDetail(tournamentId: string) {
     form.reset();
   }, []);
 
+  const onAddParticipantFromModal = useCallback((values: AddParticipantFormValues) => {
+    // XPはstring型で受け取るが、number型に変換して格納
+    setParticipants((prev) => [
+      ...prev,
+      {
+        id: String(Date.now()),
+        name: values.name,
+        isCaptain: false,
+        weapon: values.weapon,
+        xp: Number(values.xp),
+      } as Participant & { weapon: string; xp: number },
+    ]);
+  }, []);
+
   const onMakeCaptain = useCallback((participantId: string) => {
     setParticipants((prev) =>
       prev.map((p) => (p.id === participantId ? { ...p, isCaptain: true } : p))
@@ -48,6 +62,7 @@ export function useTournamentDetail(tournamentId: string) {
     loading,
     error,
     onAddParticipant,
+    onAddParticipantFromModal,
     onMakeCaptain,
   };
 }
