@@ -1,82 +1,86 @@
 'use client';
-// app/components/tournaments/TournamentList.tsx
-// トーナメント一覧を表示するコンポーネント
-
-import React, { useState, useEffect } from 'react';
+// 大会一覧を表示するコンポーネント
 import Link from 'next/link';
-import { fetchTournaments, Tournament } from '../../client/tournament/fetchTournaments';
+import { useCallback, useEffect, useState } from 'react';
+
+import { fetchTournaments, Tournament } from '@/app/client/tournament/fetchTournaments';
 
 /**
- * トーナメント一覧を表示するコンポーネント
+ * 大会一覧表示コンポーネント
  */
-export default function TournamentList() {
+const TournamentList: React.FC = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // データ取得
-  useEffect(() => {
-    const loadTournaments = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchTournaments();
-        setTournaments(data);
-        setError(null);
-      } catch (err) {
-        console.error('トーナメント一覧の取得に失敗しました:', err);
-        setError('トーナメント一覧の取得に失敗しました');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 大会一覧を取得する関数
+  const loadTournaments = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-    loadTournaments();
+    try {
+      const data = await fetchTournaments();
+      setTournaments(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '大会一覧の取得中にエラーが発生しました');
+      console.error('大会一覧の取得中にエラーが発生しました:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // 日付フォーマット関数
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    };
-    return new Date(dateString).toLocaleDateString('ja-JP', options);
-  };
+  // コンポーネントのマウント時に大会一覧を取得
+  useEffect(() => {
+    loadTournaments();
+  }, [loadTournaments]);
 
+  // ローディング中の表示
   if (loading) {
     return (
-      <div className="w-full">
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center p-8">
+        <div
+          className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+          role="status"
+        >
+          <span className="sr-only">読み込み中...</span>
         </div>
       </div>
     );
   }
 
+  // エラー時の表示
   if (error) {
     return (
-      <div className="w-full">
-        <div className="bg-red-50 border border-red-200 p-4 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
+      <div className="bg-red-50 border border-red-200 rounded-md p-4 my-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">エラーが発生しました</h3>
+            <div className="mt-2 text-sm text-red-700">
+              <p>{error}</p>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">{error}</h3>
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => loadTournaments()}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                再読み込み
+              </button>
             </div>
           </div>
         </div>
@@ -84,55 +88,136 @@ export default function TournamentList() {
     );
   }
 
+  // 大会が0件の場合の表示
   if (tournaments.length === 0) {
     return (
-      <div className="w-full">
-        <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg text-center">
-          <p className="text-gray-500">
-            大会が登録されていません。「大会作成」ボタンから新しい大会を作成してください。
-          </p>
-        </div>
+      <div className="bg-white shadow rounded-lg p-6 text-center">
+        <p className="text-gray-500">大会が登録されていません</p>
       </div>
     );
   }
 
+  // 大会一覧の表示
   return (
-    <div className="w-full">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tournaments.map((tournament) => (
-          <div
-            key={tournament.id}
-            className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition"
-          >
-            <div className="p-5">
-              <h3 className="text-xl font-semibold mb-2 text-gray-900">{tournament.name}</h3>
-              <div className="flex flex-col gap-1 text-sm text-gray-600 mb-4">
-                <p>作成日: {formatDate(tournament.createdAt)}</p>
-                <p>
-                  参加者: {tournament.participants?.length}人 | チーム:{' '}
-                  {tournament.teams?.length > 0 ? `${tournament.teams?.length}チーム` : 'なし'}
-                </p>
-                <p>
-                  状態:{' '}
-                  {tournament.draftStatus
-                    ? `ドラフト進行中 (ラウンド${tournament.draftStatus.round} ターン${tournament.draftStatus.turn})`
-                    : 'ドラフト未開始'}
-                </p>
-              </div>
-              <Link
-                href={`/tournaments/${tournament.id}`}
-                className="inline-block w-full text-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      {/* デスクトップとタブレット用のテーブル表示 */}
+      <div className="hidden sm:block">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                詳細を見る
-              </Link>
-              <p className="text-sm text-gray-500 mt-2">
-                参加者: {tournament.participants?.length}人 | チーム:{' '}
-                {tournament.teams?.length > 0 ? `${tournament.teams?.length}チーム` : 'なし'}
-              </p>
-            </div>
-          </div>
-        ))}
+                大会名
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                作成日
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {tournaments.map((tournament) => (
+              <TournamentRow key={tournament.id} tournament={tournament} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* モバイル用のカード表示 */}
+      <div className="sm:hidden">
+        <ul className="divide-y divide-gray-200">
+          {tournaments.map((tournament) => {
+            const navigateToDetail = () => {
+              window.location.href = `/tournaments/${tournament.id}`;
+            };
+
+            return (
+              <li
+                key={tournament.id}
+                className="px-4 py-4 cursor-pointer hover:bg-gray-50 transition-colors duration-150"
+                onClick={navigateToDetail}
+                role="link"
+                aria-label={`${tournament.name}の詳細を表示`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigateToDetail();
+                  }
+                }}
+              >
+                <div className="flex flex-col space-y-2">
+                  <div className="font-medium text-gray-900">{tournament.name}</div>
+                  <div className="text-sm text-gray-500">
+                    {new Intl.DateTimeFormat('ja-JP', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }).format(new Date(tournament.createdAt))}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );
+};
+
+/**
+ * 大会一覧の各行を表示するコンポーネント
+ */
+interface TournamentRowProps {
+  tournament: Tournament;
 }
+
+const TournamentRow: React.FC<TournamentRowProps> = ({ tournament }) => {
+  // 日付のフォーマット
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
+
+  // 詳細ページへ遷移する関数
+  const navigateToDetail = () => {
+    window.location.href = `/tournaments/${tournament.id}`;
+  };
+
+  return (
+    <tr
+      className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+      onClick={navigateToDetail}
+      role="link"
+      aria-label={`${tournament.name}の詳細を表示`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigateToDetail();
+        }
+      }}
+    >
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        {tournament.name}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {formatDate(tournament.createdAt)}
+      </td>
+    </tr>
+  );
+};
+
+export default TournamentList;

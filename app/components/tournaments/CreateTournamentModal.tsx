@@ -1,158 +1,175 @@
 'use client';
-// app/components/tournaments/CreateTournamentModal.tsx
-// 大会作成用のモーダルコンポーネント
-
+// 大会追加用モーダルコンポーネント
 import { useState } from 'react';
-import { createTournament, CreateTournamentInput } from '../../client/tournament/createTournament';
 
+import { createTournament } from '@/app/client/tournament/createTournament';
+
+/**
+ * モーダルのプロパティ
+ */
 interface CreateTournamentModalProps {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
-  onCreated: () => void;
+  onTournamentCreated: () => void;
 }
 
-export default function CreateTournamentModal({
-  open,
+/**
+ * 大会追加用モーダルコンポーネント
+ */
+const CreateTournamentModal: React.FC<CreateTournamentModalProps> = ({
+  isOpen,
   onClose,
-  onCreated,
-}: CreateTournamentModalProps) {
+  onTournamentCreated,
+}) => {
   // フォームの状態
-  const [formData, setFormData] = useState<CreateTournamentInput>({
-    name: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [name, setName] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 入力変更ハンドラー
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // 送信ハンドラー
+  // 大会を作成する関数
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
+    // バリデーション
+    if (!name || name.trim() === '') {
       setError('大会名を入力してください');
       return;
     }
 
+    setIsSubmitting(true);
+    setError(null);
+
     try {
-      setIsSubmitting(true);
-      setError(null);
+      await createTournament({ name });
 
-      await createTournament(formData);
-
-      // フォームリセット
-      setFormData({ name: '' });
-      // 作成完了後にコールバック呼び出し
-      onCreated();
+      // フォームをリセット
+      setName('');
+      // 親コンポーネントに作成完了を通知
+      onTournamentCreated();
       // モーダルを閉じる
       onClose();
     } catch (err) {
-      console.error('大会作成エラー:', err);
-      setError('大会の作成に失敗しました');
+      setError(err instanceof Error ? err.message : '大会の作成中にエラーが発生しました');
+      console.error('大会の作成中にエラーが発生しました:', err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // モーダルが表示されていない場合は何も描画しない
-  if (!open) return null;
+  // モーダルが開いていない場合は何も表示しない
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* オーバーレイ */}
-      <div
-        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-        data-testid="overlay"
-      ></div>
+    <>
+      {/* モーダルオーバーレイ */}
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
 
-      {/* モーダルコンテンツ */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl z-10 w-full max-w-md mx-4 overflow-hidden transform transition-all">
-        {/* ヘッダー */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">大会作成</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 focus:outline-none"
-            disabled={isSubmitting}
-          >
-            <span className="sr-only">閉じる</span>
-            <svg
-              className="h-6 w-6"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* フォーム */}
-        <form onSubmit={handleSubmit} className="px-6 py-4">
-          {/* エラーメッセージ */}
-          {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 p-3 rounded text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
-          <div className="mb-4">
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              大会名 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="例: 第1回スプラトゥーン大会"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* 操作ボタン */}
-          <div className="flex justify-end gap-3 mt-6">
+      {/* モーダル */}
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div
+          className="bg-white rounded-lg shadow-xl max-w-md w-full md:w-3/4 lg:w-1/2 mx-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* モーダルヘッダー */}
+          <div className="flex justify-between items-center p-6 border-b">
+            <h2 className="text-lg font-semibold">大会を作成する</h2>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              disabled={isSubmitting}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+              aria-label="Close"
             >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-            >
-              {isSubmitting ? '作成中...' : '作成する'}
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
           </div>
-        </form>
+
+          {/* モーダルコンテンツ */}
+          <form onSubmit={handleSubmit} role="form">
+            <div className="p-6">
+              {/* エラーメッセージ */}
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
+
+              {/* 大会名入力 */}
+              <div className="mb-4">
+                <label
+                  htmlFor="tournament-name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  大会名 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="tournament-name"
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="大会名を入力してください"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            {/* モーダルフッター */}
+            <div className="px-6 py-4 border-t flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitting}
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    作成中...
+                  </span>
+                ) : (
+                  '大会を作成する'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
-}
+};
+
+export default CreateTournamentModal;

@@ -1,27 +1,33 @@
-import React from 'react';
+// TournamentListコンポーネントのテスト
 import { render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import TournamentList from '../../../app/components/tournaments/TournamentList';
-import { fetchTournaments } from '../../../app/client/tournament/fetchTournaments';
 
-// モックの設定
-jest.mock('../../../app/client/tournament/fetchTournaments');
-const mockedFetchTournaments = fetchTournaments as jest.MockedFunction<typeof fetchTournaments>;
+import { fetchTournaments } from '@/app/client/tournament/fetchTournaments';
+import TournamentList from '@/app/components/tournaments/TournamentList';
+
+// fetchTournamentsをモック
+jest.mock('@/app/client/tournament/fetchTournaments');
 
 describe('TournamentList', () => {
+  const mockTournaments = [
+    {
+      id: '1',
+      name: 'テスト大会1',
+      createdAt: '2025-04-01T00:00:00Z',
+    },
+    {
+      id: '2',
+      name: 'テスト大会2',
+      createdAt: '2025-04-02T00:00:00Z',
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('ローディング状態を表示する', () => {
-    // fetchTournamentsがまだ解決されない状態をシミュレート
-    mockedFetchTournaments.mockReturnValue(
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve([]);
-        }, 1000);
-      })
-    );
+  it('ローディング状態が表示される', () => {
+    // APIリクエストを保留状態のままにする
+    (fetchTournaments as jest.Mock).mockReturnValue(new Promise(() => {}));
 
     render(<TournamentList />);
 
@@ -29,72 +35,51 @@ describe('TournamentList', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('大会一覧を表示する', async () => {
-    // モックデータ
-    const mockTournaments = [
-      {
-        id: 'tournament-1',
-        name: 'テスト大会1',
-        createdAt: '2025-04-18T09:00:00.000Z',
-        participants: [{ id: 'p1' }, { id: 'p2' }],
-        teams: [],
-        draftStatus: null,
-      },
-      {
-        id: 'tournament-2',
-        name: 'テスト大会2',
-        createdAt: '2025-04-18T10:00:00.000Z',
-        participants: [{ id: 'p3' }],
-        teams: [{ id: 't1' }],
-        draftStatus: {
-          round: 1,
-          turn: 2,
-          status: 'in_progress',
-        },
-      },
-    ];
-
-    mockedFetchTournaments.mockResolvedValue(mockTournaments);
+  it('大会一覧が正常に表示される', async () => {
+    // 成功レスポンスをモック
+    (fetchTournaments as jest.Mock).mockResolvedValue(mockTournaments);
 
     render(<TournamentList />);
 
-    // データが表示されるまで待機
+    // データが読み込まれるのを待つ
     await waitFor(() => {
-      expect(screen.getByText('テスト大会1')).toBeInTheDocument();
-      expect(screen.getByText('テスト大会2')).toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
 
-    // 正しい情報が表示されていることを確認
-    expect(screen.getByText(/参加者: 2人/)).toBeInTheDocument();
-    expect(screen.getByText(/チーム: 1チーム/)).toBeInTheDocument();
-    expect(screen.getByText(/ドラフト進行中 \(ラウンド1 ターン2\)/)).toBeInTheDocument();
+    // 各大会名が表示されていることを確認
+    expect(screen.getByText('テスト大会1')).toBeInTheDocument();
+    expect(screen.getByText('テスト大会2')).toBeInTheDocument();
+
+    // テーブル行がクリック可能になっていることを確認（role="link"属性の確認）
+    const tableRows = screen.getAllByRole('link');
+    expect(tableRows.length).toBe(2);
   });
 
-  it('エラーメッセージを表示する', async () => {
-    // エラー状態をシミュレート
-    mockedFetchTournaments.mockRejectedValue(new Error('APIエラー'));
+  it('エラー状態が表示される', async () => {
+    // エラーレスポンスをモック
+    (fetchTournaments as jest.Mock).mockRejectedValue(new Error('APIエラー'));
 
     render(<TournamentList />);
 
-    // エラーメッセージが表示されるまで待機
+    // エラーメッセージが表示されるのを待つ
     await waitFor(() => {
-      expect(screen.getByText('トーナメント一覧の取得に失敗しました')).toBeInTheDocument();
+      expect(screen.getByText('エラーが発生しました')).toBeInTheDocument();
     });
+
+    // エラーの詳細と再読み込みボタンが表示されていることを確認
+    expect(screen.getByText('APIエラー')).toBeInTheDocument();
+    expect(screen.getByText('再読み込み')).toBeInTheDocument();
   });
 
-  it('大会が0件の場合に適切なメッセージを表示する', async () => {
-    // 空の配列を返す
-    mockedFetchTournaments.mockResolvedValue([]);
+  it('データが空の場合、適切なメッセージが表示される', async () => {
+    // 空のデータをモック
+    (fetchTournaments as jest.Mock).mockResolvedValue([]);
 
     render(<TournamentList />);
 
-    // メッセージが表示されるまで待機
+    // メッセージが表示されるのを待つ
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          '大会が登録されていません。「大会作成」ボタンから新しい大会を作成してください。'
-        )
-      ).toBeInTheDocument();
+      expect(screen.getByText('大会が登録されていません')).toBeInTheDocument();
     });
   });
 });

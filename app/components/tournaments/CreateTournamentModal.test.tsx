@@ -1,114 +1,162 @@
-import React from 'react';
+// CreateTournamentModalコンポーネントのテスト
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import CreateTournamentModal from '../../../app/components/tournaments/CreateTournamentModal';
-import { createTournament } from '../../../app/client/tournament/createTournament';
 
-// モックの設定
-jest.mock('../../../app/client/tournament/createTournament');
-const mockedCreateTournament = createTournament as jest.MockedFunction<typeof createTournament>;
+import { createTournament } from '@/app/client/tournament/createTournament';
+import CreateTournamentModal from '@/app/components/tournaments/CreateTournamentModal';
+
+// createTournamentをモック
+jest.mock('@/app/client/tournament/createTournament');
 
 describe('CreateTournamentModal', () => {
+  // モーダルのプロパティ用のモック関数
   const mockOnClose = jest.fn();
-  const mockOnCreated = jest.fn();
+  const mockOnTournamentCreated = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('モーダルが閉じている場合は何も表示しない', () => {
-    const { container } = render(
-      <CreateTournamentModal open={false} onClose={mockOnClose} onCreated={mockOnCreated} />
+  it('モーダルが開いていない場合、何も表示されない', () => {
+    render(
+      <CreateTournamentModal
+        isOpen={false}
+        onClose={mockOnClose}
+        onTournamentCreated={mockOnTournamentCreated}
+      />
     );
 
-    expect(container.firstChild).toBeNull();
+    // モーダルのタイトルが存在しないことを確認
+    expect(screen.queryByText('大会を作成する')).not.toBeInTheDocument();
   });
 
-  it('モーダルが開いている場合はフォームを表示する', () => {
-    render(<CreateTournamentModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />);
+  it('モーダルが開いている場合、フォームが表示される', () => {
+    render(
+      <CreateTournamentModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTournamentCreated={mockOnTournamentCreated}
+      />
+    );
 
-    expect(screen.getByText('大会作成')).toBeInTheDocument();
+    // モーダルのタイトルとフォーム要素が表示されていることを確認
+    expect(screen.getByText('大会を作成する')).toBeInTheDocument();
     expect(screen.getByLabelText(/大会名/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '作成する' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'キャンセル' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /キャンセル/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /大会を作成する/ })).toBeInTheDocument();
+  });
+
+  it('閉じるボタンをクリックするとonCloseが呼ばれる', () => {
+    render(
+      <CreateTournamentModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTournamentCreated={mockOnTournamentCreated}
+      />
+    );
+
+    // 閉じるボタン（×アイコン）をクリック
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+    fireEvent.click(closeButton);
+
+    // onClose関数が呼ばれたことを確認
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('キャンセルボタンをクリックするとonCloseが呼ばれる', () => {
-    render(<CreateTournamentModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />);
+    render(
+      <CreateTournamentModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTournamentCreated={mockOnTournamentCreated}
+      />
+    );
 
-    fireEvent.click(screen.getByRole('button', { name: 'キャンセル' }));
+    // キャンセルボタンをクリック
+    const cancelButton = screen.getByRole('button', { name: 'キャンセル' });
+    fireEvent.click(cancelButton);
+
+    // onClose関数が呼ばれたことを確認
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('バツボタンをクリックするとonCloseが呼ばれる', () => {
-    render(<CreateTournamentModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />);
+  it('大会名が空の場合、エラーメッセージが表示される', async () => {
+    render(
+      <CreateTournamentModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTournamentCreated={mockOnTournamentCreated}
+      />
+    );
 
-    fireEvent.click(screen.getByRole('button', { name: '閉じる' }));
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('オーバーレイをクリックするとonCloseが呼ばれる', () => {
-    render(<CreateTournamentModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />);
-
-    // オーバーレイ要素をクリック
-    fireEvent.click(screen.getByTestId('overlay'));
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('空のフォームを送信するとエラーメッセージを表示する', async () => {
-    render(<CreateTournamentModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />);
-
-    // 空のフォームを送信
-    fireEvent.click(screen.getByRole('button', { name: '作成する' }));
+    // 送信ボタンをクリック（大会名を入力せずに）
+    const submitButton = screen.getByRole('button', { name: /大会を作成する/ });
+    fireEvent.click(submitButton);
 
     // エラーメッセージが表示されることを確認
     expect(await screen.findByText('大会名を入力してください')).toBeInTheDocument();
-    expect(mockedCreateTournament).not.toHaveBeenCalled();
+
+    // APIが呼ばれていないことを確認
+    expect(createTournament).not.toHaveBeenCalled();
   });
 
-  it('フォームを正しく送信するとcreateToursamentが呼ばれる', async () => {
-    mockedCreateTournament.mockResolvedValue({
-      id: 'new-id',
-      name: 'テスト大会',
-      createdAt: '2025-04-18T00:00:00.000Z',
-    });
+  it('フォームが正常に送信され、APIが呼ばれる', async () => {
+    // モックの結果
+    const mockResult = { id: '1', name: 'テスト大会', createdAt: '2025-04-18T12:00:00Z' };
+    (createTournament as jest.Mock).mockResolvedValue(mockResult);
 
-    render(<CreateTournamentModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />);
+    render(
+      <CreateTournamentModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTournamentCreated={mockOnTournamentCreated}
+      />
+    );
 
-    // フォームに入力
-    fireEvent.change(screen.getByLabelText(/大会名/), { target: { value: 'テスト大会' } });
+    // 大会名を入力
+    const nameInput = screen.getByLabelText(/大会名/);
+    fireEvent.change(nameInput, { target: { value: 'テスト大会' } });
 
     // フォームを送信
-    fireEvent.click(screen.getByRole('button', { name: '作成する' }));
+    const form = screen.getByRole('form');
+    fireEvent.submit(form);
 
-    // APIが呼ばれることを確認
-    await waitFor(() => {
-      expect(mockedCreateTournament).toHaveBeenCalledWith({ name: 'テスト大会' });
-    });
+    // APIが正しいパラメータで呼ばれたことを確認
+    expect(createTournament).toHaveBeenCalledWith({ name: 'テスト大会' });
 
-    // 成功時のコールバックが呼ばれることを確認
+    // 処理完了を待つ
     await waitFor(() => {
-      expect(mockOnCreated).toHaveBeenCalledTimes(1);
+      // onTournamentCreated関数が呼ばれたことを確認
+      expect(mockOnTournamentCreated).toHaveBeenCalledTimes(1);
+      // onClose関数が呼ばれたことを確認
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('APIエラー時にエラーメッセージを表示する', async () => {
-    mockedCreateTournament.mockRejectedValue(new Error('APIエラー'));
+  it('API呼び出しでエラーが発生した場合、エラーメッセージが表示される', async () => {
+    // APIエラーをシミュレート
+    (createTournament as jest.Mock).mockRejectedValue(new Error('APIエラー'));
 
-    render(<CreateTournamentModal open={true} onClose={mockOnClose} onCreated={mockOnCreated} />);
+    render(
+      <CreateTournamentModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onTournamentCreated={mockOnTournamentCreated}
+      />
+    );
 
-    // フォームに入力
-    fireEvent.change(screen.getByLabelText(/大会名/), { target: { value: 'テスト大会' } });
+    // 大会名を入力
+    const nameInput = screen.getByLabelText(/大会名/);
+    fireEvent.change(nameInput, { target: { value: 'テスト大会' } });
 
     // フォームを送信
-    fireEvent.click(screen.getByRole('button', { name: '作成する' }));
+    const form = screen.getByRole('form');
+    fireEvent.submit(form);
 
     // エラーメッセージが表示されることを確認
-    expect(await screen.findByText('大会の作成に失敗しました')).toBeInTheDocument();
+    expect(await screen.findByText('APIエラー')).toBeInTheDocument();
 
-    // コールバックが呼ばれないことを確認
-    expect(mockOnCreated).not.toHaveBeenCalled();
+    // コールバック関数が呼ばれていないことを確認
+    expect(mockOnTournamentCreated).not.toHaveBeenCalled();
     expect(mockOnClose).not.toHaveBeenCalled();
   });
 });

@@ -1,46 +1,40 @@
-// app/client/tournament/fetchTournaments.ts
-// 大会一覧取得用のGraphQLクエリとfetch関数
-// urqlを利用
-import { gql } from 'urql';
+// GraphQLを使用して大会一覧を取得する関数
 import { graphqlClient } from './graphqlClient';
 
-// GraphQLエンドポイント
-const TOURNAMENTS_QUERY = gql`
-  query Tournaments {
+// Tournament型定義
+export interface Tournament {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+// GraphQLクエリ
+const TOURNAMENTS_QUERY = `
+  query GetTournaments {
     tournaments {
       id
       name
       createdAt
-      participants {
-        id
-      }
-      teams {
-        id
-      }
-      draftStatus {
-        round
-        turn
-        status
-      }
     }
   }
 `;
 
-export type Tournament = {
-  id: string;
-  name: string;
-  createdAt: string;
-  participants: { id: string }[];
-  teams: { id: string }[];
-  draftStatus?: {
-    round: number;
-    turn: number;
-    status: string;
-  } | null;
-};
-
+/**
+ * 大会一覧を取得する関数
+ * @returns Promise<Tournament[]> 大会一覧の配列
+ */
 export async function fetchTournaments(): Promise<Tournament[]> {
-  const result = await graphqlClient.query(TOURNAMENTS_QUERY, {}).toPromise();
-  if (result.error) throw result.error;
-  return result.data?.tournaments ?? [];
+  try {
+    const result = await graphqlClient.query(TOURNAMENTS_QUERY, {}).toPromise();
+
+    if (result.error) {
+      console.error('大会一覧の取得に失敗しました:', result.error);
+      throw new Error(`大会一覧の取得に失敗しました: ${result.error.message}`);
+    }
+
+    return result.data?.tournaments || [];
+  } catch (error) {
+    console.error('大会一覧の取得中にエラーが発生しました:', error);
+    throw error;
+  }
 }

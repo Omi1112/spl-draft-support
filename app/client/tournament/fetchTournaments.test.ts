@@ -1,44 +1,90 @@
-// __tests__/client/tournament/fetchTournaments.test.ts
-// fetchTournamentsのユニットテスト
-import { fetchTournaments, Tournament } from '@/client/tournament/fetchTournaments';
-import { createClient } from 'urql';
+// fetchTournamentsのテスト
+import { fetchTournaments } from './fetchTournaments';
+import { graphqlClient } from './graphqlClient';
 
-jest.mock('urql');
-
-const mockQuery = jest.fn();
-(createClient as jest.Mock).mockReturnValue({ query: mockQuery });
+// グラフQLクライアントをモック化
+jest.mock('./graphqlClient', () => ({
+  graphqlClient: {
+    query: jest.fn(),
+  },
+}));
 
 describe('fetchTournaments', () => {
-  afterEach(() => {
+  // 各テストの前にモックをリセット
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('正常に大会一覧を取得できる', async () => {
-    const tournaments: Tournament[] = [
+    // モックの戻り値を設定
+    const mockTournaments = [
       {
         id: '1',
-        name: '大会1',
-        createdAt: '2025-04-18T07:00:00Z',
-        participants: [],
-        teams: [],
-        draftStatus: null,
+        name: 'テスト大会1',
+        createdAt: '2025-04-01T00:00:00Z',
+      },
+      {
+        id: '2',
+        name: 'テスト大会2',
+        createdAt: '2025-04-02T00:00:00Z',
       },
     ];
-    mockQuery.mockReturnValue({ toPromise: () => Promise.resolve({ data: { tournaments } }) });
-    const result = await fetchTournaments();
-    expect(result).toEqual(tournaments);
-  });
 
-  it('エラー時は例外を投げる', async () => {
-    mockQuery.mockReturnValue({
-      toPromise: () => Promise.resolve({ error: new Error('取得失敗') }),
+    // GraphQLクライアントのqueryメソッドをモック
+    (graphqlClient.query as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockResolvedValue({
+        data: { tournaments: mockTournaments },
+        error: undefined,
+      }),
     });
-    await expect(fetchTournaments()).rejects.toThrow('取得失敗');
+
+    // 関数を実行
+    const result = await fetchTournaments();
+
+    // 結果を検証
+    expect(result).toEqual(mockTournaments);
+    expect(graphqlClient.query).toHaveBeenCalled();
   });
 
-  it('データがない場合は空配列を返す', async () => {
-    mockQuery.mockReturnValue({ toPromise: () => Promise.resolve({ data: { tournaments: [] } }) });
+  it('空の大会リストを返す', async () => {
+    // 空の大会リストを返すモック
+    (graphqlClient.query as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockResolvedValue({
+        data: { tournaments: [] },
+        error: undefined,
+      }),
+    });
+
     const result = await fetchTournaments();
+
+    // 結果を検証
     expect(result).toEqual([]);
+    expect(graphqlClient.query).toHaveBeenCalled();
+  });
+
+  it('GraphQLエラー時にエラーをスローする', async () => {
+    // エラーを返すモック
+    (graphqlClient.query as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockResolvedValue({
+        data: undefined,
+        error: { message: 'GraphQLエラー' },
+      }),
+    });
+
+    // エラーがスローされることを検証
+    await expect(fetchTournaments()).rejects.toThrow('大会一覧の取得に失敗しました: GraphQLエラー');
+    expect(graphqlClient.query).toHaveBeenCalled();
+  });
+
+  it('ネットワークエラー時にエラーをスローする', async () => {
+    // ネットワークエラーをシミュレート
+    const networkError = new Error('ネットワークエラー');
+    (graphqlClient.query as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockRejectedValue(networkError),
+    });
+
+    // エラーがスローされることを検証
+    await expect(fetchTournaments()).rejects.toThrow('ネットワークエラー');
+    expect(graphqlClient.query).toHaveBeenCalled();
   });
 });

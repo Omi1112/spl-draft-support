@@ -1,38 +1,109 @@
-// __tests__/client/tournament/createTournament.test.ts
-// createTournamentのユニットテスト
-import { createTournament, CreateTournamentInput } from '@/client/tournament/createTournament';
-import { createClient } from 'urql';
+// createTournamentのテスト
+import { createTournament } from './createTournament';
+import { graphqlClient } from './graphqlClient';
 
-jest.mock('urql');
-
-const mockMutation = jest.fn();
-(createClient as jest.Mock).mockReturnValue({ mutation: mockMutation });
+// グラフQLクライアントをモック化
+jest.mock('./graphqlClient', () => ({
+  graphqlClient: {
+    mutation: jest.fn(),
+  },
+}));
 
 describe('createTournament', () => {
-  afterEach(() => {
+  // 各テストの前にモックをリセット
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('正常に大会作成できる', async () => {
-    const tournament = {
+  it('正常に大会を作成できる', async () => {
+    // 作成される大会のモックデータ
+    const mockCreatedTournament = {
       id: '1',
-      name: '大会A',
-      createdAt: '2025-04-18T07:00:00Z',
-      participants: [],
-      teams: [],
-      draftStatus: null,
+      name: 'テスト大会',
+      createdAt: '2025-04-18T10:00:00Z',
     };
-    mockMutation.mockReturnValue({
-      toPromise: () => Promise.resolve({ data: { createTournament: tournament } }),
+
+    // GraphQLクライアントのmutationメソッドをモック
+    (graphqlClient.mutation as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockResolvedValue({
+        data: { createTournament: mockCreatedTournament },
+        error: undefined,
+      }),
     });
-    const result = await createTournament({ name: '大会A' });
-    expect(result).toEqual(tournament);
+
+    // 関数を実行
+    const result = await createTournament({ name: 'テスト大会' });
+
+    // 結果を検証
+    expect(result).toEqual(mockCreatedTournament);
+    expect(graphqlClient.mutation).toHaveBeenCalledWith(
+      expect.stringContaining('mutation CreateTournament'),
+      { input: { name: 'テスト大会' } }
+    );
   });
 
-  it('エラー時は例外を投げる', async () => {
-    mockMutation.mockReturnValue({
-      toPromise: () => Promise.resolve({ error: new Error('作成失敗') }),
+  it('大会名が空の場合、エラーをスローする', async () => {
+    // 空の大会名でテスト
+    await expect(createTournament({ name: '' })).rejects.toThrow('大会名は必須です');
+    expect(graphqlClient.mutation).not.toHaveBeenCalled();
+  });
+
+  it('大会名が空白のみの場合、エラーをスローする', async () => {
+    // 空白のみの大会名でテスト
+    await expect(createTournament({ name: '   ' })).rejects.toThrow('大会名は必須です');
+    expect(graphqlClient.mutation).not.toHaveBeenCalled();
+  });
+
+  it('GraphQLエラー時にエラーをスローする', async () => {
+    // エラーを返すモック
+    (graphqlClient.mutation as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockResolvedValue({
+        data: undefined,
+        error: { message: 'GraphQLエラー' },
+      }),
     });
-    await expect(createTournament({ name: '大会B' })).rejects.toThrow('作成失敗');
+
+    // エラーがスローされることを検証
+    await expect(createTournament({ name: 'テスト大会' })).rejects.toThrow(
+      '大会作成に失敗しました: GraphQLエラー'
+    );
+    expect(graphqlClient.mutation).toHaveBeenCalled();
+  });
+
+  it('ネットワークエラー時にエラーをスローする', async () => {
+    // ネットワークエラーをシミュレート
+    const networkError = new Error('ネットワークエラー');
+    (graphqlClient.mutation as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockRejectedValue(networkError),
+    });
+
+    // エラーがスローされることを検証
+    await expect(createTournament({ name: 'テスト大会' })).rejects.toThrow('ネットワークエラー');
+    expect(graphqlClient.mutation).toHaveBeenCalled();
+  });
+
+  it('大会名の前後の空白を削除する', async () => {
+    // 作成される大会のモックデータ
+    const mockCreatedTournament = {
+      id: '1',
+      name: '大会名',
+      createdAt: '2025-04-18T10:00:00Z',
+    };
+
+    // GraphQLクライアントのmutationメソッドをモック
+    (graphqlClient.mutation as jest.Mock).mockReturnValue({
+      toPromise: jest.fn().mockResolvedValue({
+        data: { createTournament: mockCreatedTournament },
+        error: undefined,
+      }),
+    });
+
+    // スペースを含む大会名で実行
+    await createTournament({ name: '  大会名  ' });
+
+    // 入力値が正しくトリムされていることを確認
+    expect(graphqlClient.mutation).toHaveBeenCalledWith(expect.anything(), {
+      input: { name: '大会名' },
+    });
   });
 });
