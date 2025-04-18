@@ -50,13 +50,6 @@ export const typeDefs = gql`
 
   type Query {
     tournaments: [Tournament!]!
-    tournament(id: ID!): Tournament
-    nominatableParticipants(tournamentId: ID!): [Participant!]!
-    captain(tournamentId: ID!, participantId: ID!): Participant
-    teams(tournamentId: ID!): [Team!]!
-    tournamentCaptain(tournamentId: ID!): Participant
-    tournamentCaptains(tournamentId: ID!): [Participant!]!
-    drafts(tournamentId: ID!, captainId: ID): [Draft!]!
   }
 
   input CreateTournamentInput {
@@ -122,17 +115,5 @@ export const typeDefs = gql`
 
   type Mutation {
     createTournament(input: CreateTournamentInput!): Tournament!
-    addParticipant(input: CreateParticipantInput!): Participant!
-    createTeam(input: CreateTeamInput!): Team!
-    updateDraftStatus(input: UpdateDraftStatusInput!): DraftStatus!
-    toggleCaptain(input: ToggleCaptainInput!): Participant!
-    # 新しいミューテーションを追加
-    addParticipantToTournament(input: AddParticipantToTournamentInput!): Participant!
-    # ドラフトリセットミューテーションを追加
-    resetDraft(input: ResetDraftInput!): Boolean!
-    # ドラフト開始ミューテーションを追加
-    startDraft(input: StartDraftInput!): Boolean!
-    # 参加者指名ミューテーションを追加
-    nominateParticipant(input: NominateParticipantInput!): Draft!
   }
 `;
