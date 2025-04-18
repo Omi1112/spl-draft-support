@@ -8,7 +8,6 @@ import { tournamentResolvers } from './tournamentResolvers';
 export const resolvers = {
   Query: {
     ...tournamentResolvers.Query,
-    ...participantResolvers.Query,
     ...teamResolvers.Query,
     ...draftResolvers.Query,
   },

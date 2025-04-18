@@ -34,6 +34,8 @@
     "prisma": "^6.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "urql": "^4.2.2",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

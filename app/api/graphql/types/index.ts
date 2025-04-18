@@ -19,7 +19,6 @@ export const typeDefs = gql`
     participantId: ID!
     createdAt: String!
     isCaptain: Boolean!
-    teamId: ID
   }
 
   type Participant {
@@ -28,7 +27,6 @@ export const typeDefs = gql`
     weapon: String!
     xp: Int!
     createdAt: String!
-    team: Team
   }
 
   type Team {
@@ -62,10 +60,9 @@ export const typeDefs = gql`
   type Query {
     tournaments: [Tournament!]!
     tournament(id: ID!): Tournament
-    participants(tournamentId: ID!): [Participant!]!
-    captains(tournamentId: ID!): [Participant!]!
+    nominatableTournamentParticipants(tournamentId: ID!): [TournamentParticipant!]!
+    captain(tournamentId: ID!, participantId: ID!): TournamentParticipant
     teams(tournamentId: ID!): [Team!]!
-    allParticipants: [Participant!]!
     tournamentCaptain(tournamentId: ID!): Participant
     tournamentCaptains(tournamentId: ID!): [Participant!]!
     drafts(tournamentId: ID!, captainId: ID): [Draft!]!
@@ -136,8 +133,8 @@ export const typeDefs = gql`
     id: ID!
     tournamentId: ID!
     participantId: ID!
-    Tournament: Tournament!
-    Participant: Participant!
+    tournament: Tournament!
+    participant: Participant!
     isCaptain: Boolean!
     createdAt: String
   }
@@ -148,8 +145,6 @@ export const typeDefs = gql`
     createTeam(input: CreateTeamInput!): Team!
     updateDraftStatus(input: UpdateDraftStatusInput!): DraftStatus!
     toggleCaptain(input: ToggleCaptainInput!): TournamentParticipant!
-    setCaptain(input: ToggleCaptainInput!): TournamentParticipant!
-      @deprecated(reason: "Use toggleCaptain instead")
     # 新しいミューテーションを追加
     addParticipantToTournament(input: AddParticipantToTournamentInput!): TournamentParticipant!
     # ドラフトリセットミューテーションを追加

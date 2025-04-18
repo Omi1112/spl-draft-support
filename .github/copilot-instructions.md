@@ -62,6 +62,8 @@ YYYYmmDDHHMMSSを取得する時は、`date "+%Y%m%d%H%M%S"`コマンドを利�
 
 ### 作業ルール
 
+- FEの実装は、componetsディレクトリに実装してください。
+  - componentsディレクトリは、pageの種類ごとに作成してください。
 - 「厳格な型チェック（strict type checking）を使用したTypeScriptコードを生成してください」
 - 「null/undefinedの可能性を考慮した安全なコードを書いてください」
 - `app/api`ディレクトリは BE 実装であり FE 実装から参照を行わないでください。
