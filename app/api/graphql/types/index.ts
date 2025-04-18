@@ -5,26 +5,17 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     createdAt: String!
-    tournamentParticipants: [TournamentParticipant!]!
+    participants: [Participant!]
     teams: [Team!]
     draftStatus: DraftStatus
     drafts: [Draft!]
-  }
-
-  type TournamentParticipant {
-    id: ID!
-    tournament: Tournament!
-    tournamentId: ID!
-    participant: Participant!
-    participantId: ID!
-    createdAt: String!
-    isCaptain: Boolean!
   }
 
   type Participant {
     id: ID!
     name: String!
     weapon: String!
+    isCaptain: Boolean!
     xp: Int!
     createdAt: String!
   }
@@ -60,8 +51,8 @@ export const typeDefs = gql`
   type Query {
     tournaments: [Tournament!]!
     tournament(id: ID!): Tournament
-    nominatableTournamentParticipants(tournamentId: ID!): [TournamentParticipant!]!
-    captain(tournamentId: ID!, participantId: ID!): TournamentParticipant
+    nominatableParticipants(tournamentId: ID!): [Participant!]!
+    captain(tournamentId: ID!, participantId: ID!): Participant
     teams(tournamentId: ID!): [Team!]!
     tournamentCaptain(tournamentId: ID!): Participant
     tournamentCaptains(tournamentId: ID!): [Participant!]!
@@ -129,24 +120,14 @@ export const typeDefs = gql`
     participantId: ID!
   }
 
-  type TournamentParticipant {
-    id: ID!
-    tournamentId: ID!
-    participantId: ID!
-    tournament: Tournament!
-    participant: Participant!
-    isCaptain: Boolean!
-    createdAt: String
-  }
-
   type Mutation {
     createTournament(input: CreateTournamentInput!): Tournament!
     addParticipant(input: CreateParticipantInput!): Participant!
     createTeam(input: CreateTeamInput!): Team!
     updateDraftStatus(input: UpdateDraftStatusInput!): DraftStatus!
-    toggleCaptain(input: ToggleCaptainInput!): TournamentParticipant!
+    toggleCaptain(input: ToggleCaptainInput!): Participant!
     # 新しいミューテーションを追加
-    addParticipantToTournament(input: AddParticipantToTournamentInput!): TournamentParticipant!
+    addParticipantToTournament(input: AddParticipantToTournamentInput!): Participant!
     # ドラフトリセットミューテーションを追加
     resetDraft(input: ResetDraftInput!): Boolean!
     # ドラフト開始ミューテーションを追加
