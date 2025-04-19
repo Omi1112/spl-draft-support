@@ -1,6 +1,5 @@
 'use client';
 // 大会一覧を表示するコンポーネント
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { fetchTournaments, Tournament } from '@/app/client/tournament/fetchTournaments';

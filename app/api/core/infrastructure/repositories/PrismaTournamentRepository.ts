@@ -61,36 +61,57 @@ export class PrismaTournamentRepository implements TournamentRepository {
 
   async save(tournament: Tournament): Promise<Tournament> {
     // トーナメント情報の更新または作成
-    await this.prismaClient.tournament.upsert({
+    const existingTournament = await this.prismaClient.tournament.findUnique({
       where: { id: tournament.id.value },
-      update: {
-        name: tournament.name,
-      },
-      create: {
-        id: tournament.id.value,
-        name: tournament.name,
-        createdAt: tournament.createdAt,
-      },
     });
+
+    if (existingTournament) {
+      // 既存のトーナメントを更新
+      await this.prismaClient.tournament.update({
+        where: { id: tournament.id.value },
+        data: {
+          name: tournament.nameValue,
+        },
+      });
+    } else {
+      // 新しいトーナメントを作成
+      await this.prismaClient.tournament.create({
+        data: {
+          id: tournament.id.value,
+          name: tournament.nameValue,
+          createdAt: tournament.createdAt,
+        },
+      });
+    }
 
     // ドラフトステータスの更新または作成
     if (tournament.draftStatus) {
       const draftStatus = tournament.draftStatus;
-
-      await this.prismaClient.draftStatus.upsert({
+      const existingDraftStatus = await this.prismaClient.draftStatus.findUnique({
         where: { tournamentId: tournament.id.value },
-        update: {
-          round: draftStatus.round,
-          turn: draftStatus.turn,
-          isActive: draftStatus.isActive,
-        },
-        create: {
-          tournamentId: tournament.id.value,
-          round: draftStatus.round,
-          turn: draftStatus.turn,
-          isActive: draftStatus.isActive,
-        },
       });
+
+      if (existingDraftStatus) {
+        // 既存のドラフトステータスを更新
+        await this.prismaClient.draftStatus.update({
+          where: { tournamentId: tournament.id.value },
+          data: {
+            round: draftStatus.round,
+            turn: draftStatus.turn,
+            isActive: draftStatus.isActive,
+          },
+        });
+      } else {
+        // 新しいドラフトステータスを作成
+        await this.prismaClient.draftStatus.create({
+          data: {
+            tournamentId: tournament.id.value,
+            round: draftStatus.round,
+            turn: draftStatus.turn,
+            isActive: draftStatus.isActive,
+          },
+        });
+      }
     }
 
     return tournament;

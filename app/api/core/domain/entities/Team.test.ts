@@ -1,7 +1,6 @@
 // Teamエンティティのテスト
 // コメントは日本語で記載
 import { Team } from '@/app/api/core/domain/entities/Team';
-import { TeamId } from '@/app/api/core/domain/valueObjects/TeamId';
 import { ParticipantId } from '@/app/api/core/domain/valueObjects/ParticipantId';
 import { TournamentId } from '@/app/api/core/domain/valueObjects/TournamentId';
 
