@@ -4,6 +4,10 @@
 
 ※確認を取るのではなく、ファイル編集を実行して次のタスクに進んでください。
 
+※FEの実装は、e2eテストをし易い用に、タグなどを付与してください。
+ボタン、リンク、入力フィールド、リスト項目など、テストで操作または検証する必要がある要素に `data-testid` 属性を追加します。
+属性値は、要素の役割や内容がわかるような命名規則（例: `tournament-name-input`, `add-participant-button`, `participant-row-${participant.id}`）に従います。
+
 ※[YYYYmmDDHHMMSS]は、タスクの作成日時を示してCLIを利用して取得してください。
 YYYYmmDDHHMMSSを取得する時は、`date "+%Y%m%d%H%M%S"`コマンドを利用して時分秒までちゃんと取得してください。
 1セッションの中で指定もしくは、作成されたタスクディレクトリは同じタスクディレクトリを使用してください。
@@ -84,6 +88,8 @@ YYYYmmDDHHMMSSを取得する時は、`date "+%Y%m%d%H%M%S"`コマンドを利�
 
   - constructorはprivateメソッドとして定義して、staticなfactoryメソッドから呼び出す形にしてください。
   - 関係するEntityはEntityのIDだけ保有してObjectは保有しない。
+  - GraqphQLのスキーマとEntityは基本的に1対1の関係を持つ。
+  - 中間テーブルのEntityは、基本的に作成しない。
   - static createメソッドを定義する。
     　- createメソッドは、Entityを生成するためのメソッドでありIDの初期値割り当てなどを
   - static reconstructメソッドを定義する。
@@ -129,7 +135,16 @@ YYYYmmDDHHMMSSを取得する時は、`date "+%Y%m%d%H%M%S"`コマンドを利�
 
 ## テストルール
 
+### 基本ルール
+
+- テストコマンドは、`npm run test`を使用してください。
+- integrationテストは不要です。統合テストは、playwrightを使用するてすとをこちら側で実装します。
+- 正常系のテストだけを作成する方針としてください。
+- geterのテストは作成しないでください。
+- setterのテストは作成しないでください。
+
 ### DDDに関するルール
 
 - DBアクセスする部分以外はモックしないでください。
 - プロダクションコードをimport する時は、必ず絶対パスでimportしてください。
+- apiは、domainディレクトリだけテストを作成して、Repositoryやapplicationのテストは作成しないでください。

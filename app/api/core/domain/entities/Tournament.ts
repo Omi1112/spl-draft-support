@@ -1,6 +1,6 @@
 import { DraftStatus } from '../valueObjects/DraftStatus';
 import { TournamentId } from '../valueObjects/TournamentId';
-
+import { TournamentName } from '../valueObjects/TournamentName';
 
 /**
  * トーナメントエンティティ
@@ -8,11 +8,16 @@ import { TournamentId } from '../valueObjects/TournamentId';
  */
 export class Tournament {
   private readonly _id: TournamentId;
-  private _name: string;
+  private _name: TournamentName;
   private _createdAt: Date;
   private _draftStatus: DraftStatus;
 
-  private constructor(id: TournamentId, name: string, createdAt: Date, draftStatus: DraftStatus) {
+  private constructor(
+    id: TournamentId,
+    name: TournamentName,
+    createdAt: Date,
+    draftStatus: DraftStatus
+  ) {
     this._id = id;
     this._name = name;
     this._createdAt = createdAt;
@@ -25,7 +30,12 @@ export class Tournament {
    * @returns 新しいトーナメントエンティティ
    */
   static create(name: string): Tournament {
-    return new Tournament(TournamentId.create(), name, new Date(), DraftStatus.create());
+    return new Tournament(
+      TournamentId.create(),
+      TournamentName.create(name),
+      new Date(),
+      DraftStatus.create()
+    );
   }
 
   /**
@@ -42,7 +52,12 @@ export class Tournament {
     createdAt: Date,
     draftStatus: DraftStatus
   ): Tournament {
-    const tournament = new Tournament(TournamentId.reconstruct(id), name, createdAt, draftStatus);
+    const tournament = new Tournament(
+      TournamentId.reconstruct(id),
+      TournamentName.reconstruct(name),
+      createdAt,
+      draftStatus
+    );
 
     return tournament;
   }
@@ -76,8 +91,15 @@ export class Tournament {
     return this._id;
   }
 
-  get name(): string {
+  get name(): TournamentName {
     return this._name;
+  }
+
+  /**
+   * 大会名の文字列値を取得
+   */
+  get nameValue(): string {
+    return this._name.value;
   }
 
   get createdAt(): Date {

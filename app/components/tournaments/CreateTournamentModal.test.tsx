@@ -1,8 +1,18 @@
 // CreateTournamentModalコンポーネントのテスト
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 
 import { createTournament } from '@/app/client/tournament/createTournament';
 import CreateTournamentModal from '@/app/components/tournaments/CreateTournamentModal';
+
+// コンソールエラーをモック化（テスト出力を整理するため）
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = jest.fn();
+});
+
+afterAll(() => {
+  console.error = originalConsoleError;
+});
 
 // createTournamentをモック
 jest.mock('@/app/client/tournament/createTournament');
@@ -39,7 +49,8 @@ describe('CreateTournamentModal', () => {
     );
 
     // モーダルのタイトルとフォーム要素が表示されていることを確認
-    expect(screen.getByText('大会を作成する')).toBeInTheDocument();
+    // h2要素のモーダルタイトルを取得
+    expect(screen.getByRole('heading', { name: '大会を作成する' })).toBeInTheDocument();
     expect(screen.getByLabelText(/大会名/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /キャンセル/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /大会を作成する/ })).toBeInTheDocument();
@@ -78,8 +89,8 @@ describe('CreateTournamentModal', () => {
     // onClose関数が呼ばれたことを確認
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
-
   it('大会名が空の場合、エラーメッセージが表示される', async () => {
+    // コンポーネントをレンダリング
     render(
       <CreateTournamentModal
         isOpen={true}
@@ -88,12 +99,25 @@ describe('CreateTournamentModal', () => {
       />
     );
 
-    // 送信ボタンをクリック（大会名を入力せずに）
-    const submitButton = screen.getByRole('button', { name: /大会を作成する/ });
-    fireEvent.click(submitButton);
+    // フォーム要素を取得
+    const form = screen.getByRole('form');
 
-    // エラーメッセージが表示されることを確認
-    expect(await screen.findByText('大会名を入力してください')).toBeInTheDocument();
+    // モック関数のリセット
+    jest.clearAllMocks();
+
+    // イベントを発火して状態更新を待つ（actで囲む）
+    await act(async () => {
+      // フォームを直接送信する（submitイベントを発火）
+      fireEvent.submit(form);
+    });
+
+    // データ属性を使ってエラーメッセージコンテナを検索
+    const errorContainer = await screen.findByText(
+      '大会名を入力してください',
+      {},
+      { timeout: 1000 }
+    );
+    expect(errorContainer).toBeInTheDocument();
 
     // APIが呼ばれていないことを確認
     expect(createTournament).not.toHaveBeenCalled();

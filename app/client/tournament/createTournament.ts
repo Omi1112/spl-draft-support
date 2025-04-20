@@ -1,6 +1,7 @@
 // GraphQLを使用して新しい大会を作成する関数
-import { Tournament } from './fetchTournaments';
-import { graphqlClient } from './graphqlClient';
+import { graphqlClient } from '../graphqlClient';
+
+import { Tournament } from './types';
 
 // 大会作成用の入力インターフェース
 export interface CreateTournamentInput {

@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   // SWCを使用し、Babel設定を無視する
-  swcMinify: true,
+  // swcMinify: true, // Next.js 13以降はデフォルトで有効なため不要
   experimental: {
     forceSwcTransforms: true,
   },

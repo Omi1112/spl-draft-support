@@ -7,8 +7,6 @@ import TournamentList from './components/tournaments/TournamentList';
 export default function Home() {
   // モーダルの表示/非表示を管理する状態
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  // 大会リストを再読み込みするためのトリガー
-  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
   // モーダルを開く関数
   const openModal = () => setIsModalOpen(true);
@@ -18,8 +16,8 @@ export default function Home() {
 
   // 大会作成後の処理
   const handleTournamentCreated = () => {
-    // リフレッシュトリガーを増加させて大会リストを更新
-    setRefreshTrigger((prev) => prev + 1);
+    // 必要であれば、ここでモーダルを閉じるなどの処理を追加
+    closeModal(); // 例: 作成後にモーダルを閉じる
   };
 
   return (
@@ -31,13 +29,14 @@ export default function Home() {
           <button
             onClick={openModal}
             className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            data-testid="create-tournament-button" // data-testid を追加
           >
             大会を作成する
           </button>
         </div>
 
-        {/* 大会一覧コンポーネント */}
-        <div key={refreshTrigger}>
+        {/* 大会一覧コンポーネント (Props と key を削除) */}
+        <div>
           <TournamentList />
         </div>
 

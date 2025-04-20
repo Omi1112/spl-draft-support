@@ -32,7 +32,7 @@ export const typeDefs = gql`
   type DraftStatus {
     round: Int!
     turn: Int!
-    status: String!
+    isActive: Boolean!
   }
 
   type Draft {

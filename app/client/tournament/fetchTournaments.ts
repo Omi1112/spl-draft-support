@@ -1,15 +1,15 @@
-// GraphQLを使用して大会一覧を取得する関数
-import { graphqlClient } from './graphqlClient';
+// /workspace/app/client/tournament/fetchTournaments.ts
+import { gql } from 'urql'; // urql から gql をインポート
 
-// Tournament型定義
-export interface Tournament {
-  id: string;
-  name: string;
-  createdAt: string;
-}
+import { graphqlClient } from '../graphqlClient'; // 作成したクライアントを取得する関数をインポート
 
-// GraphQLクエリ
-const TOURNAMENTS_QUERY = `
+import { Tournament } from './types';
+
+// GraphQLエンドポイントの相対パス
+// const relativeEndpoint = '/api/graphql'; // urqlClient で定義するため不要
+
+// GraphQLクエリの定義 (変更なし)
+const GET_TOURNAMENTS_QUERY = gql`
   query GetTournaments {
     tournaments {
       id
@@ -20,21 +20,36 @@ const TOURNAMENTS_QUERY = `
 `;
 
 /**
- * 大会一覧を取得する関数
- * @returns Promise<Tournament[]> 大会一覧の配列
+ * 大会一覧を取得するクライアント関数 (urql 版)
+ * @returns 大会データの配列
+ * @throws データ取得に失敗した場合にエラーをスロー
  */
-export async function fetchTournaments(): Promise<Tournament[]> {
+export const fetchTournaments = async (): Promise<Tournament[]> => {
   try {
-    const result = await graphqlClient.query(TOURNAMENTS_QUERY, {}).toPromise();
+    // urql クライアントを使用してクエリを実行
+    const result = await graphqlClient
+      .query<{ tournaments: Tournament[] }>(GET_TOURNAMENTS_QUERY, {})
+      .toPromise();
 
     if (result.error) {
-      console.error('大会一覧の取得に失敗しました:', result.error);
-      throw new Error(`大会一覧の取得に失敗しました: ${result.error.message}`);
+      // urql のエラーハンドリング
+      console.error('Error fetching tournaments with urql:', result.error);
+      throw new Error(`Failed to fetch tournaments: ${result.error.message}`);
     }
 
-    return result.data?.tournaments || [];
+    if (!result.data) {
+      // データがない場合のエラーハンドリング
+      console.error('No data returned from fetchTournaments query');
+      throw new Error('Failed to fetch tournaments: No data received');
+    }
+
+    // 取得した大会データを返す
+    return result.data.tournaments;
   } catch (error) {
-    console.error('大会一覧の取得中にエラーが発生しました:', error);
-    throw error;
+    // その他の予期せぬエラー
+    console.error('Unexpected error fetching tournaments:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error fetching tournaments';
+    throw new Error(`Failed to fetch tournaments: ${errorMessage}`);
   }
-}
+};

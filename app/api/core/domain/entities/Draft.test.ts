@@ -1,12 +1,10 @@
 // Draftエンティティのテスト
 // コメントは日本語で記載
 import { Draft } from '@/app/api/core/domain/entities/Draft';
-import { DraftId } from '@/app/api/core/domain/valueObjects/DraftId';
-import { TournamentId } from '@/app/api/core/domain/valueObjects/TournamentId';
 import { ParticipantId } from '@/app/api/core/domain/valueObjects/ParticipantId';
+import { TournamentId } from '@/app/api/core/domain/valueObjects/TournamentId';
 
 // モック用のID生成
-const mockDraftId = DraftId.reconstruct('draft-id-1');
 const mockTournamentId = TournamentId.reconstruct('tournament-id-1');
 const mockCaptainId = ParticipantId.reconstruct('captain-id-1');
 const mockParticipantId = ParticipantId.reconstruct('participant-id-1');

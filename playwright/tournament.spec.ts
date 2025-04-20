@@ -19,7 +19,9 @@ async function addParticipant(
   xp: string,
   screenshotPath: string
 ) {
+  // TODO: 大会詳細ページのコンポーネントに data-testid="add-participant-button" を追加する
   await page.getByText('参加者を追加').click();
+  // TODO: 参加者追加モーダルのコンポーネントに data-testid を追加する
   await page.getByLabel('名前').fill(name);
   await page.getByLabel('使用武器').fill(weapon);
   await page.getByLabel('XP').fill(xp);
@@ -28,6 +30,7 @@ async function addParticipant(
   // モーダルが閉じるのを待つ
   await expect(page.getByLabel('名前')).not.toBeVisible();
   // 追加した参加者がリストに表示されるのを待つ
+  // TODO: 参加者リストの行に data-testid=`participant-row-${name}` などを追加する
   await expect(page.getByText(name)).toBeVisible();
 }
 
@@ -37,13 +40,14 @@ async function addParticipant(
  * @param participantName 参加者名
  */
 async function setCaptain(page: import('@playwright/test').Page, participantName: string) {
+  // TODO: 参加者リストの行とキャプテン設定ボタンに data-testid を追加する
   const allTrs = await page.locator('table tbody tr').all();
   for (const tr of allTrs) {
     const tds = await tr.locator('td').all();
     if (tds.length > 0) {
       const name = await tds[0].innerText();
       if (name.trim() === participantName) {
-        await tds[3].locator('button').first().click();
+        await tds[3].locator('button').first().click(); // キャプテン設定ボタン
         break;
       }
     }
@@ -56,6 +60,7 @@ async function setCaptain(page: import('@playwright/test').Page, participantName
  * @param participantName 参加者名
  */
 async function nominateParticipant(page: import('@playwright/test').Page, participantName: string) {
+  // TODO: ドラフトテーブルの行と指名ボタンに data-testid を追加する
   const draftTableTrs = await page.locator('table tbody tr').all();
   for (const tr of draftTableTrs) {
     const tds = await tr.locator('td').all();
@@ -68,6 +73,7 @@ async function nominateParticipant(page: import('@playwright/test').Page, partic
     }
   }
   // モーダル内の「指名する」ボタンを押す
+  // TODO: 指名確認モーダルとボタンに data-testid を追加する
   const modal = page.locator('div[role="dialog"], .fixed, .z-50');
   await expect(modal).toBeVisible();
   await modal.getByRole('button', { name: '指名する' }).click();
@@ -79,6 +85,7 @@ async function nominateParticipant(page: import('@playwright/test').Page, partic
  * @param captainName キャプテン名
  */
 async function goToCaptainPage(page: import('@playwright/test').Page, captainName: string) {
+  // TODO: キャプテンページへのリンクに data-testid=`captain-link-${captainName}` などを追加する
   const linkSpan = await page.getByText(`${captainName}のキャプテンページを表示`);
   const link = await linkSpan.locator('..');
   await link.click();
@@ -88,10 +95,19 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }, testInfo)
   // スクリーンショット保存先は testInfo.outputDir を直接利用
   await page.goto(TEST_URL);
   await page.screenshot({ path: `${testInfo.outputDir}/top.png` });
-  await page.getByText('大会を作成する').click();
+  // 大会作成ボタンをクリック (data-testid を使用)
+  await page.getByTestId('create-tournament-button').click();
+  await expect(page.getByTestId('create-tournament-modal')).toBeVisible();
   await page.screenshot({ path: `${testInfo.outputDir}/create-tournament.png` });
-  await page.getByLabel('大会名').fill('テスト大会');
-  await page.getByText('大会を作成する').click();
+  // 大会名を入力 (data-testid を使用)
+  await page.getByTestId('tournament-name-input').fill('テスト大会');
+  // 作成ボタンをクリック (data-testid を使用)
+  await page.getByTestId('submit-create-tournament-button').click();
+  // モーダルが閉じるのを待つ
+  await expect(page.getByTestId('create-tournament-modal')).not.toBeVisible();
+  // 大会詳細ページに遷移したことを確認（例：特定のテキストが表示されるか）
+  // TODO: 大会詳細ページの主要要素に data-testid を追加する
+  await expect(page.getByText('参加者を追加')).toBeVisible();
   await page.screenshot({ path: `${testInfo.outputDir}/tournament-detail.png` });
 
   // 10人分の参加者データを配列で定義
@@ -134,16 +150,19 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }, testInfo)
 
   // 4. 1人目のキャプテンページへ遷移
   await goToCaptainPage(page, 'テスト参加者1');
+  // TODO: キャプテンページの主要要素に data-testid を追加する
   await expect(page.getByText('キャプテン情報')).toBeVisible();
   await page.screenshot({ path: `${testInfo.outputDir}/captain1-page.png`, fullPage: true });
 
   // 4.1 ドラフト開始ボタンを押す
+  // TODO: ドラフト開始ボタンに data-testid="start-draft-button" を追加する
   page.once('dialog', async (dialog) => {
     await dialog.accept();
   });
   await page.getByRole('button', { name: 'ドラフト開始' }).click();
   await page.screenshot({ path: `${testInfo.outputDir}/draft-started.png`, fullPage: true });
 
+  // TODO: ドラフトリセットボタンに data-testid="reset-draft-button" を追加する
   await expect(page.getByRole('button', { name: 'ドラフトをリセット' })).toBeVisible();
 
   // テスト参加者3の指名
@@ -154,12 +173,14 @@ test('大会作成と参加者追加のE2Eテスト', async ({ page }, testInfo)
   });
 
   // 「← 大会ページへ戻る」リンクをクリック
+  // TODO: 大会ページへ戻るリンクに data-testid="back-to-tournament-link" を追加する
   await page.getByRole('link', { name: /大会ページへ戻る/ }).click();
   await page.screenshot({ path: `${testInfo.outputDir}/back-to-tournament.png`, fullPage: true });
 
   // 2人目のキャプテンページへ遷移
   await goToCaptainPage(page, 'テスト参加者2');
   await page.screenshot({ path: `${testInfo.outputDir}/captain2-page.png`, fullPage: true });
+  // TODO: キャプテンページの主要要素に data-testid を追加する
   await expect(page.getByText('キャプテン情報')).toBeVisible();
 
   // テスト参加者4の指名

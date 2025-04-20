@@ -1,6 +1,7 @@
 // fetchTournamentsのテスト
+import { graphqlClient } from '../graphqlClient';
+
 import { fetchTournaments } from './fetchTournaments';
-import { graphqlClient } from './graphqlClient';
 
 // グラフQLクライアントをモック化
 jest.mock('./graphqlClient', () => ({
